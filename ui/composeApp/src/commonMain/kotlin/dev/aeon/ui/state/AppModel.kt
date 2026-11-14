@@ -33,7 +33,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 
 sealed interface Connection {
@@ -1170,11 +1172,16 @@ class AppModel(
     fun movePost(id: String, to: String) = postAction { client.movePost(id, to) }
 
     // The feed settings: the brief, automatic runs and the daily limits, and the taste summary. Changing them needs the machine or an admin device.
+    /** Saves of the feed's settings go one after another: two quick changes were answered out of order now and then, and the older answer put the older state back on screen. */
+    private val feedSettingsOrder = Mutex()
+
     private fun feedSettings(brief: String? = null, auto: Boolean? = null, runs: Int? = null, posts: Int? = null) {
         scope.launch {
-            runCatching { client.saveFeedSettings(brief = brief, auto = auto, dailyRuns = runs, dailyPosts = posts) }
-                .onSuccess { r -> feed { it.copy(data = r.copy(report = null), briefDraft = null, error = null) } }
-                .onFailure { e -> feed { it.copy(error = if (e is AeonException && e.status == 403) "이 기기는 피드 설정을 바꿀 수 없어요." else "저장하지 못했어요. 잠시 뒤에 다시 해 보세요.") } }
+            feedSettingsOrder.withLock {
+                runCatching { client.saveFeedSettings(brief = brief, auto = auto, dailyRuns = runs, dailyPosts = posts) }
+                    .onSuccess { r -> feed { it.copy(data = r.copy(report = null), briefDraft = null, error = null) } }
+                    .onFailure { e -> feed { it.copy(error = if (e is AeonException && e.status == 403) "이 기기는 피드 설정을 바꿀 수 없어요." else "저장하지 못했어요. 잠시 뒤에 다시 해 보세요.") } }
+            }
         }
     }
 
