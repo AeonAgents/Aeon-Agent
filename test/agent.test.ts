@@ -6,6 +6,7 @@ import { ModelError } from "../src/core/errors.ts";
 import { MemoryStore } from "../src/core/memory-store.ts";
 import { MockProvider } from "../src/core/models/mock.ts";
 import type { Task } from "../src/core/types.ts";
+import { lastActionRefused } from "../src/core/workflow.ts";
 import { createRuntime } from "../src/node/runtime.ts";
 import { finishReply, harness, json, planReply, tempDir, toolReply } from "./helpers.ts";
 
@@ -176,7 +177,46 @@ describe("Agent end-to-end (mock model, real filesystem tools)", () => {
     const saved = await get(h, t.id);
     assert.match(saved.steps[0]!.output, /DENIED: approval denied/);
     assert.equal(existsSync(join(h.workspace, "keep.txt")), true);
+    // The run finished, but the thing asked for did not happen: the apps must not show a plain green "done".
+    assert.equal(saved.status, "COMPLETED");
+    assert.match(saved.note ?? "", /^refused/);
     h.cleanup();
+  });
+
+  it("a refusal the agent worked around leaves no refused note", async () => {
+    const m = new MockProvider("m", [
+      planReply(),
+      toolReply("fs.delete", { path: "keep.txt" }),
+      toolReply("fs.read", { path: "keep.txt" }),
+      finishReply("left it alone and read it"),
+    ]);
+    const h = harness({ providers: [m] });
+    writeFileSync(join(h.workspace, "keep.txt"), "x");
+    const t = await h.engine.submit({ goal: "delete" });
+    await h.engine.runTask(t.id);
+    const [appr] = await h.store.listApprovals("pending");
+    await h.engine.decideApproval(appr!.id, "denied");
+    await h.engine.runTask(t.id);
+    const saved = await get(h, t.id);
+    assert.equal(saved.steps[0]!.executed, false);
+    assert.equal(saved.steps[1]!.executed, true);
+    assert.equal(saved.status, "COMPLETED");
+    assert.doesNotMatch(saved.note ?? "", /refused/);
+    h.cleanup();
+  });
+
+  it("lastActionRefused looks at the last real action only", () => {
+    const ok = { tool: "fs.read" };
+    const refused = { tool: "fs.delete", executed: false };
+    assert.equal(lastActionRefused([]), false);
+    assert.equal(lastActionRefused([ok]), false);
+    assert.equal(lastActionRefused([ok, refused]), true);
+    assert.equal(lastActionRefused([refused, ok]), false);
+    // a question to the owner or the agent's own note after the refusal does not hide it, nor does one count as a refusal
+    assert.equal(lastActionRefused([refused, { tool: "agent.notice", executed: undefined }, { tool: "agent.ask", executed: false }]), true);
+    assert.equal(lastActionRefused([ok, { tool: "agent.ask", executed: false }]), false);
+    // steps saved before the field existed count as run
+    assert.equal(lastActionRefused([{ tool: "fs.delete" }]), false);
   });
 
   it("an approval that expires behaves as a denial, and late approval is refused", async () => {

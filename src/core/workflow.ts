@@ -71,6 +71,23 @@ export type RunSummary =
   | { taskId: string; result: "lease_lost" }
   | { taskId: string; result: "ran"; status: Task["status"] };
 
+/** The note on a finished task whose last real action was refused. The apps show "하지 못했어요" for it. */
+export const REFUSED_NOTE = "refused: the last action was not carried out";
+
+/**
+ * True when the last real action of the run was refused: denied by the owner, expired unanswered, or blocked by policy
+ * (`executed === false`). Questions to the owner and the agent's own notes are not actions. A refusal that the agent worked
+ * around (a later action ran) does not count; steps saved before the field existed count as run.
+ */
+export function lastActionRefused(steps: readonly { tool: string; executed?: boolean }[]): boolean {
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const s = steps[i]!;
+    if (s.tool.startsWith("agent.")) continue;
+    return s.executed === false;
+  }
+  return false;
+}
+
 /**
  * Persistent Workflow Engine: leases + fencing, retries, scheduling, cancellation, approvals.
  * Guarantee (honest version): within the Store, at most one holder can write task state for a
@@ -157,7 +174,15 @@ export class WorkflowEngine {
             verification,
           });
         }
-        const summary = await this.finish(task.id, token, { status: "COMPLETED", result: outcome.result, verification });
+        // The last real action was refused (approval denied or expired, blocked by policy) and nothing after it worked: the AI
+        // wrote a closing message, but the thing asked for did not happen. The status stays COMPLETED (the run did finish); the
+        // note lets the apps say so instead of showing a green "done".
+        const summary = await this.finish(task.id, token, {
+          status: "COMPLETED",
+          result: outcome.result,
+          verification,
+          ...(lastActionRefused(fresh?.steps ?? task.steps) ? { note: REFUSED_NOTE } : {}),
+        });
         if (outcome.remember !== undefined && this.cfg.afterDone) {
           try {
             await this.cfg.afterDone(fresh ?? task, { result: outcome.result, remember: outcome.remember });

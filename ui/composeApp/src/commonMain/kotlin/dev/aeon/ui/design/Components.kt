@@ -127,21 +127,29 @@ fun thousands(n: Long): String {
 
 fun quotaWaitWord(note: String?): String = if (note?.startsWith("limit") == true) "오늘 사용량 가득" else "AI가 붐벼요"
 
-/** The task-status chip. One word per state: 진행 중, 승인 대기, 완료, 실패, 중단됨. */
+/** A finished task whose last action was refused (denied, expired, blocked): the run ended, but the thing asked for did not happen. */
+fun taskRefused(status: String, note: String?): Boolean = status == "COMPLETED" && note?.startsWith("refused") == true
+
+/** The task-status chip. One word per state: 진행 중, 승인 대기, 완료, 하지 못했어요, 실패, 중단됨. */
 @Composable
 fun TaskStatusChip(status: String, note: String? = null) {
-    val (text, tone) = when (status) {
-        "PENDING", "RUNNING" -> "진행 중" to Tone.Accent
-        "RETRY_WAIT" -> "다시 시도 중" to Tone.Warn
-        "WAITING_FOR_APPROVAL" -> "승인 대기" to Tone.Warn
-        "WAITING_FOR_QUOTA" -> quotaWaitWord(note) to Tone.Warn
-        "WAITING_FOR_DEVICE" -> "기기 대기" to Tone.Warn
-        "COMPLETED" -> "완료" to Tone.Ok
-        "FAILED" -> "실패" to Tone.Danger
-        "CANCELLED" -> "중단됨" to Tone.Neutral
-        else -> status to Tone.Neutral
+    val (text, tone) = when {
+        taskRefused(status, note) -> "하지 못했어요" to Tone.Warn
+        else -> taskStatusWord(status, note)
     }
     Chip(text, tone)
+}
+
+private fun taskStatusWord(status: String, note: String?): Pair<String, Tone> = when (status) {
+    "PENDING", "RUNNING" -> "진행 중" to Tone.Accent
+    "RETRY_WAIT" -> "다시 시도 중" to Tone.Warn
+    "WAITING_FOR_APPROVAL" -> "승인 대기" to Tone.Warn
+    "WAITING_FOR_QUOTA" -> quotaWaitWord(note) to Tone.Warn
+    "WAITING_FOR_DEVICE" -> "기기 대기" to Tone.Warn
+    "COMPLETED" -> "완료" to Tone.Ok
+    "FAILED" -> "실패" to Tone.Danger
+    "CANCELLED" -> "중단됨" to Tone.Neutral
+    else -> status to Tone.Neutral
 }
 
 /**

@@ -2,6 +2,7 @@ package dev.aeon.ui
 
 import dev.aeon.ui.api.Approval
 import dev.aeon.ui.design.quotaWaitWord
+import dev.aeon.ui.design.taskRefused
 import dev.aeon.ui.design.thousands
 import dev.aeon.ui.screens.Fix
 import dev.aeon.ui.screens.GOAL_LIMIT
@@ -98,5 +99,14 @@ class CopyTest {
         assertEquals("1,000", thousands(1000))
         assertEquals("233,040", thousands(233040))
         assertEquals("1,234,567", thousands(1234567))
+    }
+
+    @Test
+    fun aTaskWhoseLastActionWasRefusedIsNotShownAsPlainDone() {
+        assertTrue(taskRefused("COMPLETED", "refused: the last action was not carried out"))
+        assertFalse(taskRefused("COMPLETED", null), "a finished task with no note is done")
+        assertFalse(taskRefused("COMPLETED", "retry 1/3"), "another note does not make it refused")
+        assertFalse(taskRefused("FAILED", "refused: the last action was not carried out"), "only a finished task is shown as not done")
+        assertFalse(taskRefused("RUNNING", "refused: x"))
     }
 }
