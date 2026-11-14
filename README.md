@@ -1,6 +1,6 @@
 # Aeon Agent
 
-[![CI](https://github.com/spear34000/Aeon-Agent/actions/workflows/ci.yml/badge.svg)](https://github.com/spear34000/Aeon-Agent/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+[![CI](https://github.com/AeonAgents/Aeon-Agent/actions/workflows/ci.yml/badge.svg)](https://github.com/AeonAgents/Aeon-Agent/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
 An open-source personal AI agent built around four ideas: **continuity** (work survives restarts and, later, moves between your cloud and your devices), **ownership** (your data, keys, models, and runtime), **verifiability** (a task is only "verified" if the real world confirms it), and **accessibility** (no cloud expertise required).
 
