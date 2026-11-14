@@ -79,6 +79,12 @@ describe("EXAONE provider (request/response contract, MOCKED transport)", () => 
     assert.equal(p.external, true);
   });
 
+  it("EXAONE waits up to 290 s for one answer (a busy service takes minutes), other providers keep 120 s; a caller's own limit wins", () => {
+    assert.equal(exaoneProvider({ apiKey: KEY }).requestTimeoutMs, 290_000);
+    assert.equal(exaoneProvider({ apiKey: KEY, timeoutMs: 5000 }).requestTimeoutMs, 5000);
+    assert.equal(ollamaProvider({ model: "m" }).requestTimeoutMs, 120_000);
+  });
+
   it("release mode refuses any provider flagged unreleased (mechanism kept for future integrations)", () => {
     const { dir, cleanup } = tempDir();
     class Draft extends MockProvider {
