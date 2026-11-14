@@ -7,6 +7,7 @@ import dev.aeon.ui.screens.GOAL_LIMIT
 import dev.aeon.ui.screens.friendlyError
 import dev.aeon.ui.screens.goalTooLong
 import dev.aeon.ui.screens.friendlyProblem
+import dev.aeon.ui.screens.findingWords
 import dev.aeon.ui.screens.friendlySetupProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,6 +69,14 @@ class CopyTest {
         assertEquals("AI가 붐벼요", quotaWaitWord("busy: the model service is busy; trying again soon"))
         assertEquals("AI가 붐벼요", quotaWaitWord(null), "an older server's note still reads as a short wait")
         assertEquals("오늘 사용량 가득", quotaWaitWord("limit: the model's allowance is used up for now"))
+    }
+
+    @Test
+    fun whatTheSkillScanFoundIsReadInKorean() {
+        assertEquals("인터넷에서 프로그램을 내려받아 바로 실행해요", findingWords("downloads a program and runs it"))
+        assertEquals("파일을 지워요 (격리된 상자 안에서는 임시 폴더만 지울 수 있어요)", findingWords("deletes files (only the scratch folder is writable in Docker)"))
+        assertEquals("a sentence the app does not know", findingWords("a sentence the app does not know"), "an unknown sentence is shown as sent")
+        assertFalse(findingWords("uses the network (blocked in the Docker sandbox)").contains("Docker"), "no developer word in the Korean text")
     }
 
     @Test
