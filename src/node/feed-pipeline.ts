@@ -122,7 +122,7 @@ const WRITER_SYSTEM = [
   '- Cite 1 to 3 candidate ids in "sources". Never write a web address. A candidate you cannot cite for a plain fact is skipped.',
   "- Skip teasers, opinion pieces and anything without a clear fact. Write at most the number of posts asked for, fewer is fine.",
   '- "title": a plain statement of the fact, 60 characters or fewer, no question, no exclamation mark, no emotional words.',
-  '- "kicker": a label of 1 to 12 characters (the topic). "body": one to three plain sentences, 240 characters or fewer, in your own words: do not copy eight words in a row from the article.',
+  '- "kicker": a label of 1 to 12 characters (the topic). "body": one to three plain sentences, 240 characters or fewer, in your own words: do not copy eight words in a row from the article. Korean words are short, so eight words is only about 25 characters: never reuse a clause, or the first sentence of the article, as it stands; change its wording and its order.',
   '- "reason": 60 characters or fewer, why this suits the owner, from the brief and the interest label only.',
   '- "deadline": "YYYY-MM-DD" only if the text states a date by which something must be done, otherwise leave it out. "actionable": true only if the reader can or must do something by then.',
   'Reply with JSON only: {"posts":[{"sources":["c1"],"kicker":"","title":"","body":"","reason":"","deadline":"","actionable":false}]}',
