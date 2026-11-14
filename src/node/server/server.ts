@@ -999,7 +999,9 @@ export class AeonServer {
       "x-frame-options": "DENY",
       "referrer-policy": "no-referrer",
       // 'wasm-unsafe-eval' lets the browser compile WebAssembly (the Kotlin web UI) without allowing eval() of strings.
-      "content-security-policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'",
+      // connect-src names one outside host besides this server: fonts.gstatic.com, where the web UI fetches a font for characters its own font
+      // lacks (emoji). Nothing else may be contacted, and nothing is sent to it but the font's address (decision D33).
+      "content-security-policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'",
     };
     if (!root || (method !== "GET" && method !== "HEAD")) {
       res.writeHead(404, headers).end("not found");
