@@ -161,8 +161,10 @@ fun WideLayout(state: UiState, model: AppModel) {
                     }
                 }
                 Section.Approvals -> Box(Modifier.weight(1f).fillMaxHeight()) { ApprovalsPanel(state, model) }
-                Section.Settings, Section.Agent -> Box(Modifier.weight(1f).fillMaxHeight()) { SettingsScreen(state, model) }
-                Section.Feed, Section.Explore -> Box(Modifier.weight(1f).fillMaxHeight()) { FeedScreen(state, model) }
+                Section.Settings -> Box(Modifier.weight(1f).fillMaxHeight()) { SettingsScreen(state, model) }
+                Section.Agent -> Box(Modifier.weight(1f).fillMaxHeight()) { AgentHubScreen(state, model, Modifier.fillMaxSize()) }
+                Section.Feed -> Box(Modifier.weight(1f).fillMaxHeight()) { FeedScreen(state, model, Modifier.fillMaxSize()) }
+                Section.Explore -> Box(Modifier.weight(1f).fillMaxHeight()) { ExploreScreen(state, model, Modifier.fillMaxSize()) }
             }
         }
     }
@@ -171,9 +173,9 @@ fun WideLayout(state: UiState, model: AppModel) {
 @Composable
 private fun Sidebar(state: UiState, model: AppModel, rail: Boolean) {
     val s = LocalAeonStatus.current
-    val width = if (rail) 72.dp else 220.dp
+    val width = if (rail) 88.dp else 220.dp
     Column(
-        Modifier.width(width).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceVariant).padding(if (rail) 10.dp else 14.dp),
+        Modifier.width(width).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceVariant).padding(if (rail) 8.dp else 14.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = if (rail) Alignment.CenterHorizontally else Alignment.Start,
     ) {
@@ -182,7 +184,10 @@ private fun Sidebar(state: UiState, model: AppModel, rail: Boolean) {
         Spacer(Modifier.size(6.dp))
         AeonButton(if (rail) "+" else "＋ 새 대화", { model.newConversation() }, kind = ButtonKind.Primary, wide = true, modifier = Modifier.fillMaxWidth())
         NavItem(if (rail) "대화" else "대화", state.section == Section.Chat, rail) { model.go(Section.Chat); model.newConversation() }
+        NavItem("피드", state.section == Section.Feed, rail) { model.go(Section.Feed) }
+        NavItem("둘러보기", state.section == Section.Explore, rail) { model.go(Section.Explore) }
         NavItem(if (rail) "승인" else if (state.pendingCount > 0) "승인 대기 ${state.pendingCount}" else "승인 대기", state.section == Section.Approvals, rail) { model.go(Section.Approvals) }
+        NavItem(if (rail) "에이전트" else "내 에이전트", state.section == Section.Agent, rail) { model.go(Section.Agent) }
         NavItem(if (rail) "기기" else "기기", state.section == Section.Settings && state.settingsPage == SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Devices) }
         NavItem(if (rail) "설정" else "설정", state.section == Section.Settings && state.settingsPage != SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Models) }
         Spacer(Modifier.weight(1f))
