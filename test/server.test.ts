@@ -411,6 +411,11 @@ describe("Static web UI hosting", () => {
     const home = await fetch(`${t.base}/`);
     assert.equal(home.status, 200);
     assert.match(home.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+    const csp = home.headers.get("content-security-policy") ?? "";
+    assert.match(csp, /connect-src 'self' https:\/\/fonts\.gstatic\.com;/, "the page may reach this server and the one font host, no one else");
+    assert.ok(!/\*|http:/.test(csp), "no wildcard and no plain-http source");
+    assert.match(csp, /default-src 'self'/);
+    assert.doesNotMatch(csp, /script-src[^;]*gstatic/, "the font host cannot supply scripts");
     assert.equal(home.headers.get("x-frame-options"), "DENY");
     assert.equal((await fetch(`${t.base}/some/client/route`)).status, 200, "SPA fallback");
     for (const evil of ["/..%2foutside.txt", "/%2e%2e/outside.txt", "/..%5coutside.txt", "/%2e%2e%2f%2e%2e%2foutside.txt"]) {
