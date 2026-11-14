@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import dev.aeon.ui.api.TaskSummary
 import dev.aeon.ui.design.AeonButton
 import dev.aeon.ui.design.AeonIcons
+import dev.aeon.ui.design.thousands
 import dev.aeon.ui.design.AeonShape
 import dev.aeon.ui.design.ButtonKind
 import dev.aeon.ui.design.Chip
@@ -408,7 +409,7 @@ fun AgentHubScreen(state: UiState, model: AppModel, modifier: Modifier = Modifie
         }
         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatCard("AI 사용 횟수", if (state.usageLoaded) "${ok.size}번" else "–", Modifier.weight(1f))
-            StatCard("읽고 쓴 양", if (state.usageLoaded) "${ok.sumOf { it.inputTokens + it.outputTokens }}" else "–", Modifier.weight(1f))
+            StatCard("읽고 쓴 양", if (state.usageLoaded) "${thousands(ok.sumOf { (it.inputTokens + it.outputTokens).toLong() })}" else "–", Modifier.weight(1f))
         }
         GroupHeader("설정")
         ListSurface {
