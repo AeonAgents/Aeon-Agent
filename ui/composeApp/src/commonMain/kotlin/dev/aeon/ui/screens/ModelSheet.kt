@@ -208,7 +208,8 @@ private fun ProviderDetail(state: UiState, model: AppModel, p: ProviderRow) {
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(mo.name, style = MaterialTheme.typography.titleMedium)
-                            mo.context?.let { Text("읽는 양 ${it / 1000}K", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant) }
+                            // A number of thousands of tokens means nothing to most people; what they can use is whether long texts fit.
+                            mo.context?.takeIf { it >= 100_000 }?.let { Text("긴 글도 한 번에 읽어요", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant) }
                         }
                         if (on) Icon(AeonIcons.Check, contentDescription = "사용 중", tint = scheme.primary, modifier = Modifier.size(20.dp))
                     }

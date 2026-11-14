@@ -84,7 +84,8 @@ fun ConnectScreen(state: UiState, model: AppModel, modifier: Modifier = Modifier
 
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
-        horizontalAlignment = Alignment.Start,
+        // Centred like every other first-run step; on a phone the form is as wide as the screen anyway.
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(Modifier.widthIn(max = 440.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (onBack != null) CircleButton(dev.aeon.ui.design.AeonIcons.Back, "이전", onBack)
