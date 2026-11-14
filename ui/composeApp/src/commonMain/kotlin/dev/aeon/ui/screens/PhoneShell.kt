@@ -289,7 +289,11 @@ internal fun taskStatusLine(t: TaskSummary): Pair<Color, String> {
         "WAITING_FOR_DEVICE" -> s.warn to "기기 대기"
         "FAILED" -> s.danger to "실패"
         "CANCELLED" -> neutral to "중단됨"
-        "COMPLETED" -> if (t.verification?.status == "failed") s.danger to "완료 · 확인 실패" else s.ok to "완료"
+        "COMPLETED" -> when {
+            t.verification?.status == "failed" -> s.danger to "완료 · 확인 실패"
+            dev.aeon.ui.design.taskRefused(t.status, t.note) -> s.warn to "하지 못했어요"
+            else -> s.ok to "완료"
+        }
         else -> neutral to t.status
     }
 }
@@ -316,7 +320,7 @@ private fun ChatDrawer(state: UiState, model: AppModel, modifier: Modifier) {
                 val (dot, _) = taskStatusLine(t)
                 val motion = itemMotion()
                 val selected = t.id == state.selectedTaskId
-                val quiet = t.status == "COMPLETED" && t.verification?.status != "failed" || t.status == "CANCELLED"
+                val quiet = t.status == "COMPLETED" && t.verification?.status != "failed" && !dev.aeon.ui.design.taskRefused(t.status, t.note) || t.status == "CANCELLED"
                 Row(
                     motion.fillMaxWidth().clip(RoundedCornerShape(AeonShape.CONTROL.dp)).background(if (selected) scheme.surface else Color.Transparent)
                         .clickable { model.selectTask(t.id) }.padding(horizontal = 14.dp, vertical = 13.dp),
@@ -455,6 +459,7 @@ private fun TaskTile(t: TaskSummary) {
     val scheme = MaterialTheme.colorScheme
     val (icon, bg, fg) = when {
         t.status == "FAILED" || (t.status == "COMPLETED" && t.verification?.status == "failed") -> Triple(AeonIcons.Close, s.dangerSoft, s.danger)
+        dev.aeon.ui.design.taskRefused(t.status, t.note) -> Triple(AeonIcons.Dash, s.warnSoft, s.warn)
         t.status == "COMPLETED" -> Triple(AeonIcons.Check, s.okSoft, s.ok)
         t.status.startsWith("WAITING") || t.status == "RETRY_WAIT" -> Triple(AeonIcons.Pause, s.warnSoft, s.warn)
         t.status == "PENDING" && t.runAfter > dev.aeon.ui.platform.nowMillis() -> Triple(AeonIcons.Clock, scheme.surfaceVariant, scheme.onSurface)
