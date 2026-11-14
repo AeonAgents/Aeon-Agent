@@ -268,14 +268,13 @@ private val INTRO = listOf(
     },
     IntroPage("AI와 도구는\n내가 골라요", "쓸 AI와 연동, 스킬을 직접 고르고 만들어요.") {
         Text("AI", style = MaterialTheme.typography.titleLarge)
-        ArtRow(AeonIcons.Cpu, "Solar Pro 4", "쓰는 중", ok = true)
+        ArtRow(AeonIcons.Cpu, "K-EXAONE 2.5", "쓰는 중", ok = true)
         Segmented(listOf<Pair<String?, String>>("auto" to "자동", "low" to "낮음", "mid" to "보통", "high" to "높음"), "high") {}
-        ArtRow(AeonIcons.Cpu, "Solar Mini 4")
+        ArtRow(AeonIcons.Cpu, "내 컴퓨터의 AI")
         ArtRow(AeonIcons.Plug, "GitHub", "연동")
         ArtRow(AeonIcons.Book, "회의록 정리", "스킬")
         ArtRow(AeonIcons.Plug, "Notion", "연동")
-        ArtRow(AeonIcons.Book, "PR 리뷰 체크리스트", "스킬")
-        ArtRow(AeonIcons.Cpu, "solar-pro3")
+        ArtRow(AeonIcons.Book, "주간 보고서 쓰기", "스킬")
     },
 )
 
@@ -725,7 +724,7 @@ fun ProfileSetupScreen(state: UiState, model: AppModel) {
                         Spacer(Modifier.height(20.dp))
                         AeonTextField(
                             p.about.orEmpty(), { model.editSetupProfile(p.copy(about = it.replace('\n', ' ').take(1000))) }, "알아 둘 것", singleLine = false, minHeight = 180.dp,
-                            placeholder = "예: 개발자입니다. 코드 주석은 영어로 써 주세요.", help = "고른 모델 제공자에게 전달돼요 · ${p.about.orEmpty().length}/1000",
+                            placeholder = "예: 중학교 선생님이에요. 짧고 쉬운 말로 알려 주세요.", help = "고른 AI 서비스에 전달돼요 · ${p.about.orEmpty().length}/1000",
                         )
                         Text("이런 것을 적어 보세요", Modifier.padding(top = 20.dp, bottom = 8.dp, start = 4.dp), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

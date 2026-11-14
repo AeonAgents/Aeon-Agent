@@ -60,15 +60,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
       - name: Node packages (the compiler for the agent that runs on the phone)
         run: npm ci
       - name: Node.js for Mobile (the agent that runs on the phone)
@@ -80,7 +80,7 @@ jobs:
         run: bash ./gradlew :androidApp:assembleDebug -PappVersion=${{ needs.version.outputs.numeric }} -PappVersionName=${{ needs.version.outputs.version }} -PappVersionCode=${{ needs.version.outputs.code }} --console=plain
       - name: Name the file
         run: cp ui/androidApp/build/outputs/apk/debug/androidApp-debug.apk "aeon-${{ needs.version.outputs.version }}-android-debug-key.apk"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: android-debug-key
           path: aeon-*-android-debug-key.apk
@@ -101,18 +101,18 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then echo "have=true" >> "$GITHUB_OUTPUT"; else echo "have=false" >> "$GITHUB_OUTPUT"; echo "::warning::No signing key (ANDROID_KEYSTORE_BASE64 in the release environment): the release gets only the debug-key APK. See docs/RELEASING.md."; fi
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.key.outputs.have == 'true'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: steps.key.outputs.have == 'true'
         with:
           node-version: 24
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         if: steps.key.outputs.have == 'true'
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
         if: steps.key.outputs.have == 'true'
       - name: Node packages
         if: steps.key.outputs.have == 'true'
@@ -142,7 +142,7 @@ jobs:
           apk=$(ls ui/androidApp/build/outputs/apk/release/*.apk | head -1)
           "$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner" verify --print-certs "$apk"
           cp "$apk" "aeon-${{ needs.version.outputs.version }}-android.apk"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.key.outputs.have == 'true'
         with:
           name: android-signed
@@ -168,17 +168,17 @@ jobs:
             tasks: ":composeApp:packageDeb"
             files: "ui/composeApp/build/compose/binaries/main/deb/*.deb"
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
       - name: Installers
         working-directory: ui
         shell: bash
         run: ./gradlew ${{ matrix.tasks }} -PappVersion=${{ needs.version.outputs.numeric }} --console=plain
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: desktop-${{ matrix.os }}
           path: ${{ matrix.files }}
@@ -191,12 +191,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
       - name: Build
         working-directory: ui
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --console=plain
@@ -204,7 +204,7 @@ jobs:
         run: |
           cd ui/composeApp/build/dist/wasmJs/productionExecutable
           zip -qr "$GITHUB_WORKSPACE/aeon-${{ needs.version.outputs.version }}-web.zip" .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: web
           path: aeon-*-web.zip
@@ -219,13 +219,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: dist
           merge-multiple: true
       - name: Checksums
         working-directory: dist
         run: |
+          # The Windows installers arrive in folders (exe/, msi/): everything is brought up to one level, because a checksum and a release
+          # attachment are made of files, not folders (found by the first real tag run).
+          find . -mindepth 2 -type f -exec mv -t . {} +
+          find . -mindepth 1 -type d -empty -delete
           # When a signed APK exists the debug-key one is left out: two APKs of one version would only confuse.
           if ls aeon-*-android.apk >/dev/null 2>&1; then rm -f aeon-*-android-debug-key.apk; fi
           sha256sum * > SHA256SUMS.txt

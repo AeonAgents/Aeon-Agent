@@ -53,7 +53,7 @@ import dev.aeon.ui.design.Tone
 import dev.aeon.ui.state.AppModel
 import dev.aeon.ui.state.UiState
 
-private val GUIDE_COMMANDS = listOf("git clone https://github.com/spear34000/Aeon-Agent", "cd Aeon-Agent", "node src/node/cli.ts serve --host 0.0.0.0")
+private val GUIDE_COMMANDS = listOf("git clone https://github.com/AeonAgents/Aeon-Agent", "cd Aeon-Agent", "node src/node/cli.ts serve --host 0.0.0.0")
 
 @Composable
 private fun WhereOption(icon: ImageVector, title: String, points: List<String>, selected: Boolean, chip: String? = null, onClick: () -> Unit) {
@@ -97,7 +97,7 @@ fun WhereScreen(state: UiState, model: AppModel) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             WhereOption(
                 AeonIcons.Phone, "이 기기에서 바로 쓰기",
-                listOf("컴퓨터 없이 이 기기 하나로 설정해요", "AI 모델 연결부터 프로필까지 이 앱 안에서 끝나요", "기록과 파일은 이 기기에만 있어요"),
+                listOf("컴퓨터 없이 이 기기 하나로 설정해요", "AI 연결부터 프로필까지 이 앱 안에서 끝나요", "기록과 파일은 이 기기에만 있어요"),
                 choice == "device", chip = if (model.canRunOnDevice) null else "준비 중",
             ) { model.chooseWhere("device") }
             WhereOption(

@@ -147,7 +147,7 @@ fun EvidenceCard(d: TaskDetail) {
     Card {
         Text("확인한 것", style = MaterialTheme.typography.titleMedium)
         v.evidence.forEach { e -> EvidenceRow(e) }
-        if (!v.userDefined) Text("확인 기준은 모델이 정했어요.", style = MaterialTheme.typography.bodySmall, color = s.fg3)
+        if (!v.userDefined) Text("확인 기준은 AI가 정했어요.", style = MaterialTheme.typography.bodySmall, color = s.fg3)
     }
 }
 

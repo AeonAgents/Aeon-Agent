@@ -14,7 +14,7 @@ Thank you for helping. Aeon is a personal AI agent that runs on the owner's own 
 You need Node.js 24 or newer. For the apps you also need JDK 21 and, for the Android app, the Android SDK (see [docs/UI.md](docs/UI.md)).
 
 ```bash
-git clone https://github.com/spear34000/Aeon-Agent.git
+git clone https://github.com/AeonAgents/Aeon-Agent.git
 cd Aeon-Agent
 npm ci
 npm run typecheck
@@ -31,7 +31,7 @@ cd ui
 
 ## How to work
 
-Follow [docs/BRANCHING.md](docs/BRANCHING.md): one topic per short-lived branch (`feat/…`, `fix/…`, `docs/…`), a pull request into `main`, squash-merged, branch deleted afterwards. `main` is protected: it needs a pull request, a passing CI and one approval.
+Follow [docs/BRANCHING.md](docs/BRANCHING.md): one topic per short-lived branch (`feat/…`, `fix/…`, `docs/…`), a pull request into `main`, squash-merged, branch deleted afterwards. `main` is protected: it needs a pull request and a passing CI; a change that touches a file listed in `.github/CODEOWNERS` (the agent's rules and guards, the workflows and build scripts, the decision log) also needs a maintainer's approval.
 
 A pull request is ready when:
 
