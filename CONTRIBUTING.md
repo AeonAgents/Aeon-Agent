@@ -31,7 +31,7 @@ cd ui
 
 ## How to work
 
-Follow [docs/BRANCHING.md](docs/BRANCHING.md): one topic per short-lived branch (`feat/…`, `fix/…`, `docs/…`), a pull request into `main`, squash-merged, branch deleted afterwards. `main` is protected: it needs a pull request, a passing CI and one approval.
+Follow [docs/BRANCHING.md](docs/BRANCHING.md): one topic per short-lived branch (`feat/…`, `fix/…`, `docs/…`), a pull request into `main`, squash-merged, branch deleted afterwards. `main` is protected: it needs a pull request and a passing CI; a change that touches a file listed in `.github/CODEOWNERS` (the agent's rules and guards, the workflows and build scripts, the decision log) also needs a maintainer's approval.
 
 A pull request is ready when:
 

@@ -116,7 +116,7 @@ fun PersonalPage(state: UiState, model: AppModel, modifier: Modifier = Modifier)
             GroupHeader("알아 둘 것")
             AeonTextField(
                 draft.about.orEmpty(), { draft = draft.copy(about = it.replace('\n', ' ').take(1000)) }, "내용", singleLine = false, minHeight = 140.dp,
-                placeholder = "예: 개발자입니다. 코드 주석은 영어로 써 주세요.", help = "고른 모델 제공자에게 전달돼요 · ${draft.about.orEmpty().length}/1000",
+                placeholder = "예: 중학교 선생님이에요. 짧고 쉬운 말로 알려 주세요.", help = "고른 AI 서비스에 전달돼요 · ${draft.about.orEmpty().length}/1000",
             )
             FlowRow(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ABOUT_STARTERS.forEach { label ->
