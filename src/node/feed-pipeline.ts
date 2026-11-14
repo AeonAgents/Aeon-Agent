@@ -1,3 +1,4 @@
+import { ModelError } from "../core/errors.ts";
 import { extractJsonObject, wrapUntrusted } from "../core/untrusted.ts";
 import { dice, longestSharedRun, numbersIn } from "./feed-text.ts";
 import { looksLikeBait, type FeedChat } from "./feed.ts";
@@ -255,7 +256,13 @@ export class FeedPipeline {
       message = "지금은 AI를 쓸 수 없어서 글은 쓰지 못했어요. 원문 제목만 먼저 보여 드려요. 5분 뒤에 다시 눌러 보세요.";
     } else {
       try {
-        const reply = await o.chat(WRITER_SYSTEM, this.writerPrompt(before, ordered, texts, now, room));
+        const chat = o.chat;
+        const prompt = this.writerPrompt(before, ordered, texts, now, room);
+        // An answer cut off at the token limit (reasoning can use all of it) is asked for once more: how long the model thinks differs from call to call (seen on the real service 2026-11-15, 1 run in 3).
+        const reply = await chat(WRITER_SYSTEM, prompt).catch((e: unknown) => {
+          if (e instanceof ModelError && e.kind === "truncated") return chat(WRITER_SYSTEM, prompt);
+          throw e;
+        });
         const parsed = extractJsonObject(reply) as { posts?: unknown } | null;
         if (!parsed || !Array.isArray(parsed.posts)) throw new Error("no posts in the reply");
         for (const raw of parsed.posts.slice(0, RUN.postsPerRun * 2)) {

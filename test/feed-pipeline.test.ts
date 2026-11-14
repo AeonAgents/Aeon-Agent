@@ -7,6 +7,7 @@ import { dayKey, DEFAULT_BRIEF, FeedStore, mergeSettings, type FeedPost } from "
 import { moveForToday, orderPosts, priority } from "../src/node/feed-order.ts";
 import { ImageStore, type ArticleInfo } from "../src/node/feed-images.ts";
 import type { FeedChat } from "../src/node/feed.ts";
+import { ModelError } from "../src/core/errors.ts";
 import { tempDir } from "./helpers.ts";
 
 const NOW = Date.parse("2026-11-13T09:00:00Z");
@@ -148,6 +149,25 @@ const scripted = (posts: unknown[], seen: string[] = []): FeedChat => async (sys
 const lawPost = { sources: ["c2"], kicker: "AI", title: "AI 기본법 시행령 초안 공개", body: "시행령 초안이 공개되어 의견을 받습니다. 의견은 12월 15일까지 낼 수 있습니다.", reason: "관심사 ‘AI’ · 기한이 있어요", deadline: "2026-12-15", actionable: true };
 
 describe("a run: researcher, writer, reviewer, store", () => {
+  it("an answer cut off at the token limit is asked for once more; a second cut-off falls back to headlines", async () => {
+    const cut = () => new ModelError("truncated", "exaone", "model output was empty or cut off at max_tokens");
+    let calls = 0;
+    const once: FeedChat = async (system, user) => {
+      calls++;
+      if (calls === 1) throw cut();
+      return scripted([lawPost])(system, user);
+    };
+    const a = setup(new FakeSource([RATE, LAW], pages));
+    const ok = await a.pipe.generate(run({ chat: once }));
+    assert.deepEqual([calls, ok.mode, ok.made], [2, "written", 1]);
+    a.t.cleanup();
+    let again = 0;
+    const b = setup(new FakeSource([RATE, LAW], pages));
+    const down = await b.pipe.generate(run({ chat: async () => { again++; throw cut(); } }));
+    assert.deepEqual([again, down.mode], [2, "headlines"], "one more try, not a loop");
+    b.t.cleanup();
+  });
+
   it("tells the writer that eight Korean words are only about 25 characters, so a copied clause is caught (real EXAONE copied clauses 2 of 3 times without this line, 0 of 3 and 1 of 3 with it, 2026-11-15)", async () => {
     const seen: string[] = [];
     const s = setup(new FakeSource([RATE], pages));
