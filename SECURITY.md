@@ -6,7 +6,7 @@ Aeon is pre-release software. Do not run it on data you cannot afford to lose, a
 
 Please do **not** open a public issue for security problems.
 
-Report privately through GitHub: **Security tab → "Report a vulnerability"** ([direct link](https://github.com/spear34000/Aeon-Agent/security/advisories/new)). Say what you found, how to reproduce it, and what you think the impact is. Do not include real keys, pairing codes or private files.
+Report privately through GitHub: **Security tab → "Report a vulnerability"** ([direct link](https://github.com/AeonAgents/Aeon-Agent/security/advisories/new)). Say what you found, how to reproduce it, and what you think the impact is. Do not include real keys, pairing codes or private files.
 
 This is a one-person-maintained open-source project: reports are read and answered on a best-effort basis, with no guaranteed response time. Fixes go to `main`; only `main` is supported.
 

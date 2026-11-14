@@ -1,6 +1,6 @@
 # Releasing
 
-A release is a **draft** GitHub release made from a tag. Nothing is published until the owner reads the draft and presses *Publish*. The workflow is `.github/workflows/release.yml` (decision D30).
+A release is a **draft** GitHub release made from a tag. Nothing is published until a maintainer reads the draft and presses *Publish*. The workflow is `.github/workflows/release.yml` (decision D30).
 
 ## What a release contains
 
@@ -24,7 +24,7 @@ Not built: macOS and iOS (out of scope), Windows ARM64 and rpm packages (a `jpac
    git push origin v1.2.3
    ```
    `v1.2.3-rc1` is also accepted and makes a pre-release. A version below 1.0.0 is always a pre-release. Anything else (`v1`, `v1.2`, `release-1`) stops at the first step.
-3. The workflow runs the CI checks, then builds the Android app, the desktop installers and the web app. The signed Android build **waits for the owner's approval** (GitHub shows *Review deployments* on the run).
+3. The workflow runs the CI checks, then builds the Android app, the desktop installers and the web app. The signed Android build **waits for a maintainer's approval** (either of the two; GitHub shows *Review deployments* on the run).
 4. When everything is built, the draft release appears under *Releases* with generated notes. Read it, edit the notes, press *Publish*.
 
 The version comes from the tag: `1.2.3` becomes the Android `versionName`, `10203` its `versionCode` (major × 10000 + minor × 100 + patch, so it only grows), and the numeric part is the Windows and Linux package version.
@@ -37,10 +37,10 @@ The Android release key is the app's identity: **a phone installs an update only
 keytool -genkeypair -v -keystore aeon-release.jks -alias aeon -keyalg RSA -keysize 4096 -validity 10000
 base64 -w0 aeon-release.jks > aeon-release.jks.b64        # on Windows (Git Bash) the same command works
 
-gh secret set ANDROID_KEYSTORE_BASE64   --env release --repo spear34000/Aeon-Agent < aeon-release.jks.b64
-gh secret set ANDROID_KEYSTORE_PASSWORD --env release --repo spear34000/Aeon-Agent
-gh secret set ANDROID_KEY_ALIAS         --env release --repo spear34000/Aeon-Agent
-gh secret set ANDROID_KEY_PASSWORD      --env release --repo spear34000/Aeon-Agent
+gh secret set ANDROID_KEYSTORE_BASE64   --env release --repo AeonAgents/Aeon-Agent < aeon-release.jks.b64
+gh secret set ANDROID_KEYSTORE_PASSWORD --env release --repo AeonAgents/Aeon-Agent
+gh secret set ANDROID_KEY_ALIAS         --env release --repo AeonAgents/Aeon-Agent
+gh secret set ANDROID_KEY_PASSWORD      --env release --repo AeonAgents/Aeon-Agent
 rm aeon-release.jks.b64
 ```
 
@@ -50,8 +50,8 @@ Until the secrets exist the workflow still works: the signed job says so and the
 
 ## Protections
 
-- **Environment `release`**: needs the owner's approval for every run that uses it, and runs only for tags matching `v*`.
-- **Tag ruleset `Release tags`**: `v*` tags can be created, moved and deleted by repository administrators only. A collaborator with write access cannot start a release.
+- **Environment `release`**: needs the approval of either maintainer for every run that uses it, and runs only for tags matching `v*`.
+- **Tag ruleset `Release tags`**: `v*` tags can be created, moved and deleted by repository administrators only (the administrator role is the ruleset's bypass; the organisation's two owners hold it). A collaborator with write access cannot start a release.
 - The workflow's own token is read-only except in the last job, which only creates the *draft*.
 - Pull requests that change `release.yml` build everything once (a dry run, no release, no secrets) so the workflow is tested before it is used. A pull request from a fork does not get secrets at all.
 
