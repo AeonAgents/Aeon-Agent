@@ -139,7 +139,7 @@ private fun RunBanner(report: RunReport?, last: RunReport?, online: Boolean, onD
         r != null && r.status == "nothing" -> Banner((r.message ?: "쓸 만한 기사가 없었어요") + if (r.rejected.isNotEmpty()) ": ${r.rejected.first().why}" else "", Tone.Neutral, "·", onDismiss)
         r != null && r.status == "skipped" -> Banner(r.message ?: "지금은 만들 수 없어요.", Tone.Warn, "·", onDismiss)
         !online -> Banner("인터넷 조회가 꺼져 있어서 새 글을 만들지 않아요.", Tone.Warn, "·")
-        last != null && last.mode == "headlines" -> Banner(last.message ?: "모델을 쓸 수 없어서 원문 제목만 보여 드려요.", Tone.Warn, "·")
+        last != null && last.mode == "headlines" -> Banner(last.message ?: "지금은 AI를 쓸 수 없어서 원문 제목만 보여 드려요.", Tone.Warn, "·")
     }
 }
 

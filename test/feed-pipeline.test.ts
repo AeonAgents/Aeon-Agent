@@ -188,7 +188,8 @@ describe("a run: researcher, writer, reviewer, store", () => {
     const a = mk();
     const none = await a.pipe.generate(run({ chat: undefined }));
     assert.deepEqual([none.mode, none.status, none.made], ["headlines", "made", 2]);
-    assert.match(none.message ?? "", /모델을 쓸 수 없어서/);
+    assert.match(none.message ?? "", /AI를 쓸 수 없어서/);
+    assert.doesNotMatch(none.message ?? "", /모델/, "no jargon in what the owner reads");
     assert.ok(a.pipe.store.read().posts.every((p) => !p.written && p.body === ""));
     const b = mk();
     const down = await b.pipe.generate(run({ chat: async () => { throw new Error("quota"); } }));

@@ -9,6 +9,10 @@ type Common = { fetch?: typeof fetch; redactor?: Redactor; timeoutMs?: number };
  *  - POST https://api.exaone.ai/v1/chat/completions, Bearer auth, model id `k-exaone_v2.5`
  *  - context 524,288 tokens, text only, OpenAI-compatible, SSE streaming
  *  - tool calling and structured output are NOT documented  => "unknown" (treated as unsupported)
+ *    Seen working on the live service on 2026-11-15 (docs/TESTING.md): `tools` + `tool_choice` returned a `tool_calls`
+ *    entry, `response_format` json_object and json_schema returned parsable JSON. Aeon asks for JSON in plain text and
+ *    uses neither, so they stay "unknown": an undocumented feature may change without notice.
+ *  - `reasoning_effort` accepts low, medium, high and max; "none" is refused with 400 (live, 2026-11-15)
  *  - concrete rate limits are not published                 => null
  *
  * DECISION D9 (owner, 2026-11-10): the integration ships publicly with bring-your-own-key and without
