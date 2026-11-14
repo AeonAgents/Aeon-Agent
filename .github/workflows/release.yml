@@ -68,7 +68,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Node packages (the compiler for the agent that runs on the phone)
         run: npm ci
       - name: Node.js for Mobile (the agent that runs on the phone)
@@ -112,7 +112,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
         if: steps.key.outputs.have == 'true'
       - name: Node packages
         if: steps.key.outputs.have == 'true'
@@ -173,7 +173,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Installers
         working-directory: ui
         shell: bash
@@ -196,7 +196,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Build
         working-directory: ui
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --console=plain
