@@ -252,7 +252,7 @@ export class FeedPipeline {
       message = errors[0] ?? "최근 3일 안에 새 기사가 없어요";
     } else if (!o.chat) {
       mode = "headlines";
-      message = "모델을 쓸 수 없어서 글을 쓰지 못했어요. 원문 제목만 보여 드려요.";
+      message = "지금은 AI를 쓸 수 없어서 글은 쓰지 못했어요. 원문 제목만 먼저 보여 드려요. 5분 뒤에 다시 눌러 보세요.";
     } else {
       try {
         const reply = await o.chat(WRITER_SYSTEM, this.writerPrompt(before, ordered, texts, now, room));
@@ -267,7 +267,7 @@ export class FeedPipeline {
         if (made.length === 0) message = rejected.length > 0 ? "검수를 통과한 글이 없어요" : "쓸 만한 기사가 없었어요";
       } catch {
         mode = "headlines";
-        message = "모델이 답하지 않아서 원문 제목만 보여 드려요.";
+        message = "AI가 답하지 않아서 글은 쓰지 못했어요. 원문 제목만 먼저 보여 드려요. 5분 뒤에 다시 눌러 보세요.";
       }
     }
     if (mode === "headlines" && ordered.length > 0) {

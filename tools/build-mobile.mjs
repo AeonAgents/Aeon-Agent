@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "dist-mobile");
 rmSync(out, { recursive: true, force: true });
-const tsc = createRequire(import.meta.url).resolve("typescript/bin/tsc");
+// `typescript/package.json` is exported by every TypeScript version; the compiler's own bin path is not (TypeScript 7 hides it).
+const tsc = join(dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "bin", "tsc");
 execFileSync(process.execPath, [tsc, "-p", join(root, "tsconfig.mobile.json")], { cwd: root, stdio: "inherit" });
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "package.json"), JSON.stringify({ name: "aeon-mobile", private: true, type: "module" }) + "\n");
