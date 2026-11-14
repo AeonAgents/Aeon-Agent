@@ -226,6 +226,10 @@ jobs:
       - name: Checksums
         working-directory: dist
         run: |
+          # The Windows installers arrive in folders (exe/, msi/): everything is brought up to one level, because a checksum and a release
+          # attachment are made of files, not folders (found by the first real tag run).
+          find . -mindepth 2 -type f -exec mv -t . {} +
+          find . -mindepth 1 -type d -empty -delete
           # When a signed APK exists the debug-key one is left out: two APKs of one version would only confuse.
           if ls aeon-*-android.apk >/dev/null 2>&1; then rm -f aeon-*-android-debug-key.apk; fi
           sha256sum * > SHA256SUMS.txt
