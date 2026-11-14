@@ -236,7 +236,7 @@ fun ApprovalsPanel(state: UiState, model: AppModel, modifier: Modifier = Modifie
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Glyph(mark, color = color, style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.size(8.dp))
-                    Text(a.summary.take(60), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                    Text(recentLabel(a), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
                     Text(word, style = MaterialTheme.typography.bodySmall, color = color)
                 }
             }
