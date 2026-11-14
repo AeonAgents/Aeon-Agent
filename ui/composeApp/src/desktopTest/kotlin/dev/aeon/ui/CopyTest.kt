@@ -1,6 +1,7 @@
 package dev.aeon.ui
 
 import dev.aeon.ui.design.quotaWaitWord
+import dev.aeon.ui.screens.Fix
 import dev.aeon.ui.screens.GOAL_LIMIT
 import dev.aeon.ui.screens.friendlyError
 import dev.aeon.ui.screens.goalTooLong
@@ -28,7 +29,9 @@ class CopyTest {
     @Test
     fun problemsWithTheAiServiceSayWhatToDoAndHideWhatTheServiceSaid() {
         val auth = friendlyProblem("exaone: auth: HTTP 401: {\"error\":{\"message\":\"invalid api key format\",\"code\":\"invalid_api_key\"}}")
-        assertTrue(auth.fixInSettings, "a wrong key is fixed in the AI settings")
+        assertTrue(auth.fixInSettings, "a wrong key has a fix")
+        assertEquals(Fix.Key, auth.fix, "a wrong key is changed on the page of the access keys, where a stored key can be replaced")
+        assertEquals(Fix.Ai, friendlyProblem("exaone: bad_request: HTTP 422: x").fix)
         assertTrue("키" in auth.text && "401" !in auth.text && "{" !in auth.text, auth.text)
         assertTrue(friendlyProblem("router: consent_required: no model provider is permitted: exaone").fixInSettings)
         assertTrue(friendlyProblem("exaone: bad_request: HTTP 422: x").fixInSettings)

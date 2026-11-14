@@ -1,7 +1,12 @@
 package dev.aeon.ui.screens
 
-/** What a person reads when a task stopped, and whether the fix is on the AI settings page. */
-internal data class Problem(val text: String, val fixInSettings: Boolean = false)
+/** Where the fix is: nowhere in the app, on the page of the access keys, or on the page where the AI is chosen. */
+internal enum class Fix { None, Key, Ai }
+
+/** What a person reads when a task stopped, and where the app can take them to put it right. */
+internal data class Problem(val text: String, val fix: Fix = Fix.None) {
+    val fixInSettings: Boolean get() = fix != Fix.None
+}
 
 /**
  * What the engine reports when a task stops, in words an ordinary user can act on. The engine writes these in English for
@@ -15,9 +20,9 @@ internal fun friendlyProblem(raw: String): Problem {
     val t = raw.trim()
     val kind = MODEL_ERROR.find(t)?.groupValues?.get(1)
     return when {
-        kind == "auth" -> Problem("AI 서비스가 내 키를 받아 주지 않아요. 키가 맞는지, 기간이 지나지 않았는지 확인해 주세요.", fixInSettings = true)
-        kind == "consent_required" -> Problem("이 AI에 내용을 보내도 되는지 아직 허락을 받지 못했어요. AI 설정에서 허락해 주세요.", fixInSettings = true)
-        kind == "bad_request" -> Problem("AI 서비스가 요청을 받아들이지 않았어요. 고른 AI의 이름이나 설정을 확인해 주세요.", fixInSettings = true)
+        kind == "auth" -> Problem("AI 서비스가 내 키를 받아 주지 않아요. 키가 맞는지, 기간이 지나지 않았는지 확인해 주세요.", Fix.Key)
+        kind == "consent_required" -> Problem("이 AI에 내용을 보내도 되는지 아직 허락을 받지 못했어요. AI 설정에서 허락해 주세요.", Fix.Ai)
+        kind == "bad_request" -> Problem("AI 서비스가 요청을 받아들이지 않았어요. 고른 AI의 이름이나 설정을 확인해 주세요.", Fix.Ai)
         kind == "network" -> Problem("인터넷에 연결되지 않아 AI 서비스에 닿지 못했어요. 연결을 확인하고 다시 해 보세요.")
         kind == "timeout" -> Problem("AI 서비스가 너무 오래 답하지 않아요. 잠시 뒤에 다시 해 보세요.")
         kind == "server" || kind == "unavailable" -> Problem("AI 서비스에 지금 문제가 있어요. 몇 분 뒤에 다시 해 보세요.")

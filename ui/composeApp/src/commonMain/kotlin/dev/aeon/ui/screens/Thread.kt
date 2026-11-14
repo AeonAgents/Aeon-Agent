@@ -141,7 +141,11 @@ fun ConversationScreen(state: UiState, model: AppModel, wide: Boolean, modifier:
                                 Text(problem.text, color = LocalAeonStatus.current.danger, style = MaterialTheme.typography.bodyMedium)
                                 Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     AeonButton("다시 해보기", { model.createTask(detail.goal, emptyList()) }, kind = ButtonKind.Primary)
-                                    if (problem.fixInSettings) AeonButton("AI 설정 열기", { model.openSettings(dev.aeon.ui.state.SettingsPage.Models) }, kind = ButtonKind.Ghost)
+                                    when (problem.fix) {
+                                        Fix.Key -> AeonButton("키 바꾸기", { model.openSettings(dev.aeon.ui.state.SettingsPage.Keys) }, kind = ButtonKind.Ghost)
+                                        Fix.Ai -> AeonButton("AI 설정 열기", { model.openSettings(dev.aeon.ui.state.SettingsPage.Models) }, kind = ButtonKind.Ghost)
+                                        Fix.None -> {}
+                                    }
                                 }
                             }
                         }

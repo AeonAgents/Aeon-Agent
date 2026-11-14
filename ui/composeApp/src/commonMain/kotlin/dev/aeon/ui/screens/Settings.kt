@@ -131,6 +131,8 @@ private fun SettingsTabs(state: UiState, model: AppModel, title: String) {
 @Composable
 private fun SettingsBody(state: UiState, model: AppModel) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // What the last action did ("키를 저장했어요") or why it did not work is shown where the person is, not only in the conversation.
+        state.message?.let { Banner(it, Tone.Neutral, "·", model::dismissMessage) }
         when (state.settingsPage) {
             SettingsPage.Personal -> {}
             SettingsPage.Models -> ModelsPage(state, model)
@@ -153,7 +155,7 @@ private fun ModelsPage(state: UiState, model: AppModel) {
     val cur = state.models.current
     Card {
         Text("지금 쓰는 AI", style = MaterialTheme.typography.titleMedium)
-        Text(if (cur == null) "아직 고르지 않았습니다." else "${cur.providerName} · ${cur.model.ifBlank { "모델 이름 없음" }}${cur.reasoningEffort?.let { " · 추론 $it" } ?: ""}", style = MaterialTheme.typography.bodyLarge)
+        Text(if (cur == null) "아직 고르지 않았어요." else "${cur.providerName.ifBlank { cur.provider }}${effortLabel(cur.reasoningEffort)?.let { " · 생각하는 정도: $it" } ?: ""}", style = MaterialTheme.typography.bodyLarge)
         AeonButton("AI 바꾸기", { model.openModelSheet() }, Modifier.fillMaxWidth(), kind = ButtonKind.Primary)
     }
     
@@ -189,7 +191,7 @@ private fun KeyRow(title: String, name: String, stored: Boolean, model: AppModel
             value = value,
             onValueChange = { value = it },
             label = if (stored) "새 키로 바꾸기" else "키 붙여 넣기",
-            placeholder = "예: sk-로 시작하는 키",
+            placeholder = "AI 서비스에서 받은 키를 붙여 넣어요",
             help = null,
             secret = !reveal,
             mono = true,

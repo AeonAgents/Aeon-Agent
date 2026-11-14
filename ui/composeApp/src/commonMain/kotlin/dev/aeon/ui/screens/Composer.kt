@@ -53,7 +53,7 @@ internal const val GOAL_LIMIT = 4000
 
 internal fun goalTooLong(text: String): Boolean = text.trim().length > GOAL_LIMIT
 
-private fun effortLabel(e: String?): String? = when (e) {
+internal fun effortLabel(e: String?): String? = when (e) {
     "low" -> "빠르게"
     "medium" -> "보통"
     "high" -> "깊게"
