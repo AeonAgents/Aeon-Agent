@@ -181,10 +181,10 @@ private fun Sidebar(state: UiState, model: AppModel, rail: Boolean) {
         else Text("Æ", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.size(6.dp))
         AeonButton(if (rail) "+" else "＋ 새 대화", { model.newConversation() }, kind = ButtonKind.Primary, wide = true, modifier = Modifier.fillMaxWidth())
-        NavItem(if (rail) "대" else "대화", state.section == Section.Chat, rail) { model.go(Section.Chat); model.newConversation() }
-        NavItem(if (rail) "승" else if (state.pendingCount > 0) "승인 대기 ${state.pendingCount}" else "승인 대기", state.section == Section.Approvals, rail) { model.go(Section.Approvals) }
-        NavItem(if (rail) "기" else "기기", state.section == Section.Settings && state.settingsPage == SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Devices) }
-        NavItem(if (rail) "설" else "설정", state.section == Section.Settings && state.settingsPage != SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Models) }
+        NavItem(if (rail) "대화" else "대화", state.section == Section.Chat, rail) { model.go(Section.Chat); model.newConversation() }
+        NavItem(if (rail) "승인" else if (state.pendingCount > 0) "승인 대기 ${state.pendingCount}" else "승인 대기", state.section == Section.Approvals, rail) { model.go(Section.Approvals) }
+        NavItem(if (rail) "기기" else "기기", state.section == Section.Settings && state.settingsPage == SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Devices) }
+        NavItem(if (rail) "설정" else "설정", state.section == Section.Settings && state.settingsPage != SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Models) }
         Spacer(Modifier.weight(1f))
         if (!rail) {
             val (dot, text) = when (val c = state.connection) {
@@ -212,7 +212,7 @@ private fun NavItem(label: String, selected: Boolean, rail: Boolean, onClick: ()
         Modifier.fillMaxWidth().background(bg, RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(horizontal = 10.dp, vertical = 10.dp),
         contentAlignment = if (rail) Alignment.Center else Alignment.CenterStart,
     ) {
-        Text(label, color = fg, style = MaterialTheme.typography.bodyMedium)
+        Text(label, color = fg, style = if (rail) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodyMedium)
     }
 }
 

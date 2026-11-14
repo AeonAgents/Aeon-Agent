@@ -36,7 +36,7 @@ fun main() = application {
     val waiting = state.approvals.size
     Window(
         onCloseRequest = ::exitApplication,
-        title = if (waiting > 0) "Aeon — $waiting waiting for your approval" else "Aeon",
+        title = if (waiting > 0) "Aeon — 승인 대기 ${waiting}개" else "Aeon",
         state = rememberWindowState(size = DpSize(1180.dp, 760.dp)),
     ) {
         window.minimumSize = java.awt.Dimension(900, 560)
