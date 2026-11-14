@@ -58,8 +58,26 @@ fun riskInfo(a: Approval): RiskInfo = if (a.tool == "skill.run") RiskInfo("스�
     else -> RiskInfo("확인", 3) { _ -> "이 작업을 실행할까요?" }
 }
 
-private fun fileName(path: String): String = path.trimEnd('/', '\\').substringAfterLast('/').substringAfterLast('\\').ifEmpty { path }
+internal fun fileName(path: String): String = path.trimEnd('/', '\\').substringAfterLast('/').substringAfterLast('\\').ifEmpty { path }
 private fun folderOf(path: String): String = path.trimEnd('/', '\\').let { p -> val i = maxOf(p.lastIndexOf('/'), p.lastIndexOf('\\')); if (i > 0) p.substring(0, i) else "" }
+
+/**
+ * One line for the "recent decisions" list: what it was, in plain words. The server's own summary ("DELETE file C:\Users\…") is English and
+ * long, so a file action shows its kind and the file's name, and the few other kinds show what they were.
+ */
+internal fun recentLabel(a: Approval): String {
+    val file = a.risk == "read" || a.risk == "write" || a.risk == "delete"
+    return when {
+        a.kind == "question" -> a.summary.take(60)
+        file && a.resources.isNotEmpty() -> riskInfo(a).kind + " · " + fileName(a.resources.first()) + if (a.resources.size > 1) " 외 ${a.resources.size - 1}개" else ""
+        a.tool == "skill.create" -> "스킬 만들기"
+        a.tool == "skill.update" -> "스킬 고치기"
+        a.tool == "skill.run" -> "스크립트 실행"
+        a.tool == "memory.save" -> "기억하기"
+        a.tool == "memory.forget" -> "기억 지우기"
+        else -> a.summary.take(60)
+    }
+}
 
 /**
  * Approval card. The title says what will happen, the targets are listed by name, and the exact request (full paths,

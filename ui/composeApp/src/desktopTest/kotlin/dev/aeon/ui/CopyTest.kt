@@ -1,5 +1,6 @@
 package dev.aeon.ui
 
+import dev.aeon.ui.api.Approval
 import dev.aeon.ui.design.quotaWaitWord
 import dev.aeon.ui.design.thousands
 import dev.aeon.ui.screens.Fix
@@ -8,6 +9,7 @@ import dev.aeon.ui.screens.friendlyError
 import dev.aeon.ui.screens.goalTooLong
 import dev.aeon.ui.screens.friendlyProblem
 import dev.aeon.ui.screens.findingWords
+import dev.aeon.ui.screens.recentLabel
 import dev.aeon.ui.screens.friendlySetupProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -69,6 +71,16 @@ class CopyTest {
         assertEquals("AI가 붐벼요", quotaWaitWord("busy: the model service is busy; trying again soon"))
         assertEquals("AI가 붐벼요", quotaWaitWord(null), "an older server's note still reads as a short wait")
         assertEquals("오늘 사용량 가득", quotaWaitWord("limit: the model's allowance is used up for now"))
+    }
+
+    @Test
+    fun theListOfRecentDecisionsNamesWhatItWasNotTheServersEnglish() {
+        fun ap(tool: String, risk: String, summary: String, vararg res: String) = Approval(id = "a", taskId = "t", tool = tool, summary = summary, risk = risk, resources = res.toList(), status = "approved")
+        assertEquals("삭제 · to-delete.txt", recentLabel(ap("fs.delete", "delete", "DELETE file C:/Users/x/ws/to-delete.txt", "C:/Users/x/ws/to-delete.txt")))
+        assertEquals("쓰기 · a.txt 외 1개", recentLabel(ap("fs.write", "write", "WRITE 2 files", "/w/a.txt", "/w/b.txt")))
+        assertEquals("스킬 만들기", recentLabel(ap("skill.create", "write", "Create skill \"x\": …")))
+        assertEquals("기억하기", recentLabel(ap("memory.save", "write", "Remember: …")))
+        assertEquals("어느 파일을 정리할까요?", recentLabel(Approval(id = "q", taskId = "t", tool = "ask", summary = "어느 파일을 정리할까요?", risk = "read", kind = "question", status = "approved")))
     }
 
     @Test
