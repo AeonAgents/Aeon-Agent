@@ -252,7 +252,7 @@ private fun toolLabel(tool: String): String = when (tool) {
     else -> tool
 }
 
-/** What the agent has done so far, one line per action, with the real tool name beside each. */
+/** What the agent has done so far, one line per action in plain words (the real tool name only when there is no plain one). */
 @Composable
 private fun ProgressCard(d: TaskDetail, waiting: Boolean) {
     val s = LocalAeonStatus.current
@@ -271,7 +271,8 @@ private fun ProgressCard(d: TaskDetail, waiting: Boolean) {
                     androidx.compose.material3.Icon(if (st.ok) dev.aeon.ui.design.AeonIcons.Check else dev.aeon.ui.design.AeonIcons.Close, contentDescription = if (st.ok) "성공" else "실패", tint = if (st.ok) s.ok else s.danger, modifier = Modifier.size(12.dp))
                 }
                 Text(toolLabel(st.tool), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                Text(st.tool, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                // The plain label is enough for a person; the technical name stays only where there is no plain one (the task detail lists every tool name).
+                if (toolLabel(st.tool) == st.tool) Text(st.tool, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             }
         }
     }
