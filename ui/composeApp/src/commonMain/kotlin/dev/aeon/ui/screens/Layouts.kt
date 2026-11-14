@@ -167,6 +167,9 @@ fun WideLayout(state: UiState, model: AppModel) {
                 Section.Explore -> Box(Modifier.weight(1f).fillMaxHeight()) { ExploreScreen(state, model, Modifier.fillMaxSize()) }
             }
         }
+        // The skills manager and the skill editor are pages of their own over the whole window (the phone layout draws them too); without these two lines "스킬" did nothing on a PC.
+        SkillsHost(state, model)
+        state.skills.editing?.let { SkillEditor(it, state, model) }
     }
 }
 
