@@ -148,6 +148,14 @@ const scripted = (posts: unknown[], seen: string[] = []): FeedChat => async (sys
 const lawPost = { sources: ["c2"], kicker: "AI", title: "AI 기본법 시행령 초안 공개", body: "시행령 초안이 공개되어 의견을 받습니다. 의견은 12월 15일까지 낼 수 있습니다.", reason: "관심사 ‘AI’ · 기한이 있어요", deadline: "2026-12-15", actionable: true };
 
 describe("a run: researcher, writer, reviewer, store", () => {
+  it("tells the writer that eight Korean words are only about 25 characters, so a copied clause is caught (real EXAONE copied clauses 2 of 3 times without this line, 0 of 3 and 1 of 3 with it, 2026-11-15)", async () => {
+    const seen: string[] = [];
+    const s = setup(new FakeSource([RATE], pages));
+    await s.pipe.generate(run({ interests: ["재테크"], chat: scripted([], seen) }));
+    assert.match(seen[0]!, /Korean words are short, so eight words is only about 25 characters/);
+    assert.match(seen[0]!, /never reuse a clause/);
+    s.t.cleanup();
+  });
   it("writes posts from candidates: one model call, article text and brief in the prompt, fenced as data, no addresses; pictures kept", async () => {
     const src = new FakeSource([RATE, LAW], pages);
     const s = setup(src);
