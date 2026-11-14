@@ -118,6 +118,13 @@ fun Chip(text: String, tone: Tone, icon: String? = null, modifier: Modifier = Mo
  * WAITING_FOR_QUOTA has two reasons, and the engine's note starts with the word for it: `busy` (the AI service turned the
  * call away for now, it goes on by itself) or `limit` (the day's allowance is used up).
  */
+/** 233040 -> "233,040": a long number is read in groups of three. */
+fun thousands(n: Long): String {
+    val digits = kotlin.math.abs(n).toString()
+    val grouped = digits.reversed().chunked(3).joinToString(",").reversed()
+    return if (n < 0) "-$grouped" else grouped
+}
+
 fun quotaWaitWord(note: String?): String = if (note?.startsWith("limit") == true) "오늘 사용량 가득" else "AI가 붐벼요"
 
 /** The task-status chip. One word per state: 진행 중, 승인 대기, 완료, 실패, 중단됨. */

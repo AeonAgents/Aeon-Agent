@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import dev.aeon.ui.api.AeonConfig
 import dev.aeon.ui.design.AeonButton
 import dev.aeon.ui.design.AeonIcons
+import dev.aeon.ui.design.thousands
 import dev.aeon.ui.design.AeonShape
 import dev.aeon.ui.design.AeonSwitch
 import dev.aeon.ui.design.AeonTextField
@@ -220,7 +221,7 @@ private fun UsagePage(state: UiState) {
     val ok = state.usage.filter { it.ok }
     Card {
         Text("AI 사용 횟수", style = MaterialTheme.typography.titleMedium)
-        Text("${ok.size}번 · 읽고 쓴 양 ${ok.sumOf { it.inputTokens + it.outputTokens }}", style = MaterialTheme.typography.bodyLarge)
+        Text("${ok.size}번 · 읽고 쓴 양 ${thousands(ok.sumOf { (it.inputTokens + it.outputTokens).toLong() })}", style = MaterialTheme.typography.bodyLarge)
         Text("그중 생각에 쓴 양 ${ok.sumOf { it.reasoningTokens }}", style = MaterialTheme.typography.bodySmall, color = s.fg3)
     }
     if (state.usageLoaded && state.usage.isEmpty()) Text("아직 AI를 쓰지 않았어요.", style = MaterialTheme.typography.bodySmall, color = s.fg3)

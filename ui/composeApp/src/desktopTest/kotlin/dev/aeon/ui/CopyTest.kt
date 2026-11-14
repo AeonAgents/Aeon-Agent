@@ -1,6 +1,7 @@
 package dev.aeon.ui
 
 import dev.aeon.ui.design.quotaWaitWord
+import dev.aeon.ui.design.thousands
 import dev.aeon.ui.screens.Fix
 import dev.aeon.ui.screens.GOAL_LIMIT
 import dev.aeon.ui.screens.friendlyError
@@ -67,5 +68,14 @@ class CopyTest {
         assertEquals("AI가 붐벼요", quotaWaitWord("busy: the model service is busy; trying again soon"))
         assertEquals("AI가 붐벼요", quotaWaitWord(null), "an older server's note still reads as a short wait")
         assertEquals("오늘 사용량 가득", quotaWaitWord("limit: the model's allowance is used up for now"))
+    }
+
+    @Test
+    fun aLongNumberIsReadInGroupsOfThree() {
+        assertEquals("0", thousands(0))
+        assertEquals("999", thousands(999))
+        assertEquals("1,000", thousands(1000))
+        assertEquals("233,040", thousands(233040))
+        assertEquals("1,234,567", thousands(1234567))
     }
 }

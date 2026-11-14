@@ -82,6 +82,8 @@ private fun builtinTitle(id: String): String = when (id) {
     "fs" -> "파일"
     "http" -> "웹 요청"
     "sandbox" -> "격리 실행"
+    "skill" -> "스킬 사용"
+    "memory" -> "기억"
     else -> id
 }
 
