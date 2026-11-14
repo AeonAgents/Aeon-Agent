@@ -407,8 +407,8 @@ fun AgentHubScreen(state: UiState, model: AppModel, modifier: Modifier = Modifie
             Chip(if (connected) "연결됨" else "끊김", if (connected) Tone.Ok else Tone.Danger)
         }
         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatCard("AI 사용 횟수", "${ok.size}번", Modifier.weight(1f))
-            StatCard("읽고 쓴 양", "${ok.sumOf { it.inputTokens + it.outputTokens }}", Modifier.weight(1f))
+            StatCard("AI 사용 횟수", if (state.usageLoaded) "${ok.size}번" else "–", Modifier.weight(1f))
+            StatCard("읽고 쓴 양", if (state.usageLoaded) "${ok.sumOf { it.inputTokens + it.outputTokens }}" else "–", Modifier.weight(1f))
         }
         GroupHeader("설정")
         ListSurface {

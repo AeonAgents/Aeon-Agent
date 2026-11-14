@@ -221,7 +221,7 @@ private fun UsagePage(state: UiState) {
         Text("${ok.size}번 · 읽고 쓴 양 ${ok.sumOf { it.inputTokens + it.outputTokens }}", style = MaterialTheme.typography.bodyLarge)
         Text("그중 생각에 쓴 양 ${ok.sumOf { it.reasoningTokens }}", style = MaterialTheme.typography.bodySmall, color = s.fg3)
     }
-    if (state.usage.isEmpty()) Text("아직 AI를 쓰지 않았어요.", style = MaterialTheme.typography.bodySmall, color = s.fg3)
+    if (state.usageLoaded && state.usage.isEmpty()) Text("아직 AI를 쓰지 않았어요.", style = MaterialTheme.typography.bodySmall, color = s.fg3)
 }
 
 @Composable

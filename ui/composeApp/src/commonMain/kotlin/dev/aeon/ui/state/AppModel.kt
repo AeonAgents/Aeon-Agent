@@ -257,6 +257,8 @@ data class UiState(
     val secretsBackend: String = "",
     val devices: List<DeviceInfo> = emptyList(),
     val usage: List<UsageRecord> = emptyList(),
+    /** False until the numbers have come from the server once: before that the screens show a dash, not a believable "0". */
+    val usageLoaded: Boolean = false,
     /** Last user-visible problem (cleared on the next successful action). */
     val message: String? = null,
     val busy: Boolean = false,
@@ -403,7 +405,7 @@ class AppModel(
         if (page == SettingsPage.Memory) loadMemory()
         if (page == SettingsPage.Routines) loadRoutines()
         if (page == SettingsPage.Feed) loadFeed()
-        if (page == SettingsPage.Usage) scope.launch { runCatching { client.usage() }.onSuccess { u -> _state.update { it.copy(usage = u) } } }
+        if (page == SettingsPage.Usage) scope.launch { runCatching { client.usage() }.onSuccess { u -> _state.update { it.copy(usage = u, usageLoaded = true) } } }
     }
 
     /** Clears the current selection and shows the new-conversation composer. */
@@ -1044,7 +1046,7 @@ class AppModel(
     }
 
     fun loadUsage() {
-        scope.launch { runCatching { client.usage() }.onSuccess { u -> _state.update { it.copy(usage = u) } } }
+        scope.launch { runCatching { client.usage() }.onSuccess { u -> _state.update { it.copy(usage = u, usageLoaded = true) } } }
     }
 
     // ---------------------------------------------------------------- 둘러보기

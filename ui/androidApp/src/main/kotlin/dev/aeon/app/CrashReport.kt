@@ -120,7 +120,9 @@ object CrashReport {
             exits.maxOfOrNull { it.timestamp }?.let { prefs.edit().putLong(SEEN, it).apply() }
         }
         runCatching { File(context.filesDir, "agent/cfg/node-error.log").takeIf { it.exists() }?.readText()?.takeLast(3000) }.getOrNull()?.let { parts += "[에이전트(Node) 오류 기록]\n$it" }
-        if (previousRunDiedAt > installedAt) parts += "[감지] 앱이 화면에 떠 있는 동안 종료됐어요."
+        // From Android 11 the system keeps the real reason, so the marker alone proves nothing (a force stop, a flat battery, an update all leave it);
+        // it is only an extra line next to a real reason. Before Android 11 it is the only sign there is.
+        if (previousRunDiedAt > installedAt && (Build.VERSION.SDK_INT < 30 || parts.isNotEmpty())) parts += "[감지] 앱이 화면에 떠 있는 동안 종료됐어요."
         if (parts.isEmpty()) return null
         parts += "[앱 로그]\n" + recentLog()
         return "Aeon ${runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()} " +
