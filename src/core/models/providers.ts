@@ -20,6 +20,14 @@ type Common = { fetch?: typeof fetch; redactor?: Redactor; timeoutMs?: number };
  * third-party access through a product); the owner accepted the residual ambiguity. The `unreleased`
  * mechanism stays available for future integrations.
  */
+/**
+ * How long one EXAONE request may take. Measured 2026-11-15 on the live service while it was busy: it produced 7 to 8 tokens a
+ * second, and a feed writer's answer (1,500 to 2,200 tokens, most of them reasoning even at "low") came after 185 s and 301 s, while
+ * the service itself closes a request at about 300 s. With the usual 120 s such an answer was thrown away every time, so the same
+ * task failed the same way on every attempt. 290 s waits as long as the service will. A fast service answers in seconds either way.
+ */
+export const EXAONE_REQUEST_TIMEOUT_MS = 290_000;
+
 export function exaoneProvider(
   opts: Common & { apiKey: string; baseUrl?: string; model?: string; reasoningEffort?: "low" | "high" | "max" },
 ): OpenAICompatibleProvider {
@@ -43,7 +51,7 @@ export function exaoneProvider(
     extraBody: { reasoning_effort: opts.reasoningEffort ?? "low" },
     ...(opts.fetch ? { fetch: opts.fetch } : {}),
     ...(opts.redactor ? { redactor: opts.redactor } : {}),
-    ...(opts.timeoutMs ? { timeoutMs: opts.timeoutMs } : {}),
+    timeoutMs: opts.timeoutMs ? opts.timeoutMs : EXAONE_REQUEST_TIMEOUT_MS,
   };
   return new OpenAICompatibleProvider(cfg);
 }

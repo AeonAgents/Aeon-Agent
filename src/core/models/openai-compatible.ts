@@ -23,6 +23,9 @@ export interface OpenAICompatibleConfig {
   redactor?: Redactor;
 }
 
+/** How long one request may take when a preset does not say otherwise. */
+export const DEFAULT_REQUEST_TIMEOUT_MS = 120_000;
+
 /** Generic client for /chat/completions. Used directly and as the base for presets. */
 export class OpenAICompatibleProvider implements ModelProvider {
   readonly id: string;
@@ -39,6 +42,11 @@ export class OpenAICompatibleProvider implements ModelProvider {
     this.unreleased = cfg.unreleased ?? false;
     this.doFetch = cfg.fetch ?? fetch;
     cfg.redactor?.register(cfg.apiKey);
+  }
+
+  /** How long one request may take before it is given up (a preset may set its own). */
+  get requestTimeoutMs(): number {
+    return this.cfg.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
   }
 
   capabilities(): ModelCapabilities {
@@ -62,7 +70,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
     if (req.maxTokens !== undefined) base.max_tokens = req.maxTokens;
     if (req.temperature !== undefined) base.temperature = req.temperature;
 
-    const timeout = AbortSignal.timeout(this.cfg.timeoutMs ?? 120_000);
+    const timeout = AbortSignal.timeout(this.requestTimeoutMs);
     const signal = req.signal ? anySignal([req.signal, timeout]) : timeout;
 
     const send = async (body: Record<string, unknown>): Promise<Response> => {
