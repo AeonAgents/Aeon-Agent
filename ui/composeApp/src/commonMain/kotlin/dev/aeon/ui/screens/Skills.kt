@@ -159,6 +159,32 @@ private fun SheetPanel(onDismiss: () -> Unit, content: @Composable ColumnScope.(
 
 // ---------------------------------------------------------------- the manager
 
+/** What the install-time scan found, in Korean. The server's sentences are English; a sentence not listed here is shown as the server sent it. */
+internal fun findingWords(what: String): String = when (what) {
+    "runs decoded code (the text on screen is not what runs)" -> "풀어낸 코드를 실행해요 (화면에 보이는 글과 실제로 돌아가는 것이 달라요)"
+    "decodes text and runs it" -> "암호처럼 바꾼 글을 풀어서 실행해요"
+    "downloads a program and runs it" -> "인터넷에서 프로그램을 내려받아 바로 실행해요"
+    "runs text that comes from outside" -> "바깥에서 들어온 글을 명령으로 실행해요"
+    "builds code from text while running" -> "실행하는 중에 글로 코드를 만들어요"
+    "a long block of escaped bytes (hidden text)" -> "알아볼 수 없게 숨겨 둔 긴 글이 있어요"
+    "runs the contents of a file it reads (an input file could carry code)" -> "읽은 파일의 내용을 그대로 실행해요 (파일 안에 코드가 숨어 있을 수 있어요)"
+    "loads code named by its arguments" -> "전달받은 이름의 코드를 불러와서 써요"
+    "runs text it was handed as a command" -> "전달받은 글을 명령으로 실행해요"
+    "touches the container runtime or host internals" -> "격리된 상자나 컴퓨터 안쪽을 건드려요"
+    "asks for more rights than a script needs" -> "스크립트에 필요한 것보다 큰 권한을 요구해요"
+    "sets something up to run later or at startup" -> "나중에 또는 컴퓨터를 켤 때 저절로 실행되게 설정해요"
+    "reads keys or credentials" -> "접속 키나 로그인 정보를 읽어요"
+    "looks like a crypto miner" -> "암호화폐 채굴 프로그램처럼 보여요"
+    "starts processes without end" -> "끝없이 프로그램을 만들어 내요"
+    "is a program or data file, not text a person can read" -> "사람이 읽을 수 있는 글이 아니라 프로그램이나 데이터 파일이에요"
+    "a very long unbroken line (hidden text)" -> "끊김 없이 아주 긴 줄이 있어요 (숨겨 둔 글일 수 있어요)"
+    "uses the network (blocked in the Docker sandbox)" -> "인터넷을 써요 (격리된 상자 안에서는 막혀요)"
+    "starts other programs" -> "다른 프로그램을 실행해요"
+    "reads environment variables (empty inside the sandbox)" -> "컴퓨터의 환경 설정값을 읽어요 (격리된 상자 안에서는 비어 있어요)"
+    "deletes files (only the scratch folder is writable in Docker)" -> "파일을 지워요 (격리된 상자 안에서는 임시 폴더만 지울 수 있어요)"
+    else -> what
+}
+
 /** The skills manager: pages pushed over the whole screen, innermost on top. Back goes one page back. */
 @Composable
 fun SkillsHost(state: UiState, model: AppModel) {
@@ -362,14 +388,14 @@ private fun SkillReviewPage(state: UiState, model: AppModel) {
             Label("안전 검사")
             if (c.safety.level == "clean") {
                 Banner("스크립트 ${c.safety.scanned}개를 검사했고 위험해 보이는 점을 찾지 못했어요. 정해 둔 규칙으로 찾은 결과라서, 코드를 직접 읽는 것을 대신하지는 않아요.", Tone.Ok, "✓")
-                c.safety.findings.take(4).forEach { f -> Text("· ${f.file}:${f.line} ${f.what}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                c.safety.findings.take(4).forEach { f -> Text("· ${f.file}:${f.line} ${findingWords(f.what)}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(AeonShape.CARD.dp)).background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp)) {
                     AeonSwitch(a.autoRun, model::setSkillAutoRunDraft, "묻지 않고 실행 (격리된 상자 안에서만)")
                 }
                 Text("격리된 상자(Docker)는 인터넷이 없고 읽기만 돼요. 이 컴퓨터에서 직접 돌릴 때는 계속 물어봐요.", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 Banner("읽어 봐야 할 부분을 찾았어요. 이 스크립트는 실행할 때마다 물어봐요.", Tone.Warn, "⚠")
-                c.safety.findings.filter { it.severity == "block" }.take(8).forEach { f -> Text("· ${f.file}:${f.line} ${f.what}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = LocalAeonStatus.current.warn) }
+                c.safety.findings.filter { it.severity == "block" }.take(8).forEach { f -> Text("· ${f.file}:${f.line} ${findingWords(f.what)}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = LocalAeonStatus.current.warn) }
             }
         }
         Label("설치 위치")
@@ -410,6 +436,10 @@ private fun SkillDetailPage(state: UiState, model: AppModel) {
     val d = sk.detail ?: return
     val k = d.skill
     val canEdit = sk.canEdit && !d.busy
+    // The server's page for one skill does not carry the safety check or the run-without-asking switch; the list row does.
+    val row = sk.list.firstOrNull { it.folder == k.folder && it.scope == k.scope }
+    val sf = k.safety ?: row?.safety
+    val autoRunOn = if (k.safety != null) k.autoRun else (row?.autoRun ?: k.autoRun)
     var confirm by remember(k.folder, k.scope) { mutableStateOf(false) }
     val newer = sk.updates.any { it.name == k.folder && it.scope == k.scope && it.status == "update-available" }
     val isGithub = k.source?.type == "github"
@@ -449,14 +479,13 @@ private fun SkillDetailPage(state: UiState, model: AppModel) {
                 AeonSwitch(k.enabled, { model.setSkillEnabled(it) }, "에이전트가 쓰기", enabled = canEdit)
             }
             if (k.scripts) {
-                val sf = k.safety
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(AeonShape.CARD.dp)).background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp)) {
-                    AeonSwitch(k.autoRun, { model.setSkillAutoRun(it) }, "묻지 않고 실행 (Docker 안에서만)", enabled = canEdit && sf?.level == "clean")
+                    AeonSwitch(autoRunOn, { model.setSkillAutoRun(it) }, "묻지 않고 실행 (격리된 상자 안에서만)", enabled = canEdit && sf?.level == "clean")
                 }
                 if (sf != null && sf.level != "clean") {
                     Text("안전 검사에서 읽어 볼 점이 있어서 실행할 때마다 물어봐요.", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = LocalAeonStatus.current.warn)
-                    sf.findings.filter { it.severity == "block" }.take(6).forEach { f -> Text("· ${f.file}:${f.line} ${f.what}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                } else if (k.autoRun) {
+                    sf.findings.filter { it.severity == "block" }.take(6).forEach { f -> Text("· ${f.file}:${f.line} ${findingWords(f.what)}", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                } else if (autoRunOn) {
                     Text("안전 검사를 통과해서 격리된 상자 안에서는 묻지 않고 실행돼요. 이 컴퓨터에서 직접 돌릴 때는 계속 물어봐요.", Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -479,7 +508,7 @@ private fun SkillDetailPage(state: UiState, model: AppModel) {
             KeyValue("파일", "${k.files.size + 1}개")
             if (k.hash.isNotEmpty()) KeyValue("내용 지문", k.hash.take(6) + "…" + k.hash.takeLast(4), mono = true)
         }
-        if (k.scripts && !k.autoRun) Banner("스크립트 ${k.files.count { it.startsWith("scripts/") }}개 · 에이전트가 쓰려 할 때마다 코드를 보여 드리고 물어봐요", Tone.Warn, "⚠")
+        if (k.scripts && !autoRunOn) Banner("스크립트 ${k.files.count { it.startsWith("scripts/") }}개 · 에이전트가 쓰려 할 때마다 코드를 보여 드리고 물어봐요", Tone.Warn, "⚠")
         k.warnings.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp)) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             AeonButton("지침 보기", model::readSkill, Modifier.weight(1f), kind = ButtonKind.Secondary)
