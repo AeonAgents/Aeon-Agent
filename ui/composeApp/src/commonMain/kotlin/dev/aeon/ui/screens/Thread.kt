@@ -75,7 +75,9 @@ fun ConversationScreen(state: UiState, model: AppModel, wide: Boolean, modifier:
         // On the phone the top bar already says who this is; the title row appears only once a task is open.
         if (wide || state.selectedTaskId != null) ConversationHeader(summary?.goal, wide, onDetail = { state.selectedTaskId?.let { model.selectTask(it, asDetail = true) } }, hasTask = state.selectedTaskId != null)
         if (offline) {
-            Banner("에이전트에 연결할 수 없어요. 컴퓨터가 켜져 있고 같은 와이파이에 있는지 확인해 주세요.", Tone.Danger, "⚠", null)
+            val reason = (state.connection as? Connection.Offline)?.reason
+                ?: "에이전트에 연결하고 있어요. 잠시만 기다려 주세요."
+            Banner(reason, Tone.Danger, "⚠", null)
         }
         state.status?.setupProblem?.let {
             Banner("AI 서비스에 연결할 키가 아직 없어요. 입력창 아래 AI 버튼에서 키를 넣거나 다른 AI를 골라 주세요.", Tone.Warn, "•")

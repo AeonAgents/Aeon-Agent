@@ -80,6 +80,7 @@ class SetupFlowTest {
         val connection = m.state.value.connection
         assertTrue(connection is dev.aeon.ui.state.Connection.Offline, connection.toString())
         assertFalse(connection.reason.contains("와이파이"), "an agent that is part of the app is not a Wi-Fi problem: ${connection.reason}")
+        assertEquals("이 기기의 에이전트가 꺼져 있어요. 다시 켜고 있어요…", connection.reason)
         // one start when the app opened, then a start only every 400 ms although it polls every 100 ms
         assertTrue(agent.starts in 3..12, "starts: ${agent.starts}")
     }
@@ -95,8 +96,11 @@ class SetupFlowTest {
         val agent = CountingAgent()
         val m = AppModel(AeonClient("http://192.168.0.12:7421", crypto, http), store, crypto, scope, pollMillis = 100, defaultServerUrl = "", localAgent = agent, localRestartMillis = 100)
         m.start()
-        runBlocking { delay(1500) }
+        runBlocking { withTimeout(10_000) { while (m.state.value.connection !is dev.aeon.ui.state.Connection.Offline) delay(50) } }
         assertEquals(0, agent.starts, "another computer's agent is not this app's to start")
+        val connection = m.state.value.connection
+        assertTrue(connection is dev.aeon.ui.state.Connection.Offline)
+        assertEquals("에이전트에 연결할 수 없어요. 컴퓨터가 켜져 있고 같은 와이파이에 있는지 확인해 주세요.", connection.reason)
     }
 
     @Test

@@ -526,10 +526,10 @@ class AppModel(
                 _state.update { it.copy(connection = Connection.Unpaired, message = "This device is no longer authorised. Pair it again.") }
                 store.remove(KEY_DEVICE)
             } else {
-                offline(e)
+                offline()
             }
         } catch (e: Exception) {
-            offline(e)
+            offline()
         }
     }
 
@@ -540,13 +540,13 @@ class AppModel(
      * The agent could not be reached. When it is the one inside this app, it is simply not running (the window that started it
      * was closed, or it crashed), so say that and start it again, now and then, instead of telling the person to check the Wi-Fi.
      */
-    private fun offline(e: Exception) {
+    private fun offline() {
         val local = localAgent.available && dev.aeon.ui.api.PairLink.isThisDevice(client.baseUrl)
         if (!local) {
-            _state.update { it.copy(connection = Connection.Offline(describe(e))) }
+            _state.update { it.copy(connection = Connection.Offline("에이전트에 연결할 수 없어요. 컴퓨터가 켜져 있고 같은 와이파이에 있는지 확인해 주세요.")) }
             return
         }
-        _state.update { it.copy(connection = Connection.Offline("이 컴퓨터의 에이전트가 꺼져 있어요. 다시 켜고 있어요…")) }
+        _state.update { it.copy(connection = Connection.Offline("${localAgent.deviceNoun}의 에이전트가 꺼져 있어요. 다시 켜고 있어요…")) }
         val now = dev.aeon.ui.platform.nowMillis()
         if (localRestarting || now - localRestartAt < localRestartMillis) return
         localRestarting = true
