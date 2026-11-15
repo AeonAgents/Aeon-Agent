@@ -141,15 +141,19 @@ fun AdaptiveLayout(state: UiState, model: AppModel) {
  * Wide layout (design 09): sidebar 220 + list 380 + conversation or task detail. Between 1100 and 1279dp the
  * sidebar collapses to an icon rail (72) so the conversation keeps its width.
  */
+internal fun conversationListWidth(windowWidth: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp =
+    if (windowWidth < 1100.dp) (windowWidth * 0.3f).coerceIn(180.dp, 280.dp) else 380.dp
+
 @Composable
 fun WideLayout(state: UiState, model: AppModel) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val rail = maxWidth < 1280.dp
+        val listWidth = conversationListWidth(maxWidth)
         Row(Modifier.fillMaxSize()) {
             Sidebar(state, model, rail)
             when (state.section) {
                 Section.Chat, Section.Tasks -> {
-                    Box(Modifier.width(380.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface)) {
+                    Box(Modifier.width(listWidth).fillMaxHeight().background(MaterialTheme.colorScheme.surface)) {
                         TaskList(state, model)
                     }
                     Box(Modifier.weight(1f).fillMaxHeight()) {
