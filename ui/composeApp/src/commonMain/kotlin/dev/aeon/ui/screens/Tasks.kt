@@ -53,7 +53,7 @@ import dev.aeon.ui.state.UiState
 
 /** Task rows: goal, status word, verification word, time. Used in the wide middle column and on the phone. */
 @Composable
-fun TaskList(state: UiState, model: AppModel, modifier: Modifier = Modifier, showHeader: Boolean = true) {
+fun TaskList(state: UiState, model: AppModel, modifier: Modifier = Modifier, showHeader: Boolean = true, onTaskSelected: () -> Unit = {}) {
     Column(modifier.fillMaxSize()) {
         if (showHeader) {
             Text("대화", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
@@ -63,7 +63,7 @@ fun TaskList(state: UiState, model: AppModel, modifier: Modifier = Modifier, sho
         } else {
             LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(state.tasks, key = { it.id }) { t ->
-                    TaskRow(t, selected = t.id == state.selectedTaskId, modifier = itemMotion()) { model.selectTask(t.id) }
+                    TaskRow(t, selected = t.id == state.selectedTaskId, modifier = itemMotion()) { model.selectTask(t.id); onTaskSelected() }
                 }
             }
         }

@@ -3,6 +3,8 @@ package dev.aeon.ui.screens
 import dev.aeon.ui.design.Glyph
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -142,25 +144,34 @@ fun AdaptiveLayout(state: UiState, model: AppModel) {
  * sidebar collapses to an icon rail (72) so the conversation keeps its width.
  */
 internal fun conversationListWidth(windowWidth: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp =
-    if (windowWidth < 1100.dp) (windowWidth * 0.3f).coerceIn(180.dp, 280.dp) else 380.dp
+    if (windowWidth < 720.dp) 0.dp else if (windowWidth < 1100.dp) (windowWidth * 0.3f).coerceIn(180.dp, 280.dp) else 380.dp
 
 @Composable
 fun WideLayout(state: UiState, model: AppModel) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val rail = maxWidth < 1280.dp
         val listWidth = conversationListWidth(maxWidth)
+        val compact = listWidth == 0.dp
+        var listOpen by rememberSaveable { mutableStateOf(false) }
         Row(Modifier.fillMaxSize()) {
-            Sidebar(state, model, rail)
+            Sidebar(state, model, rail) { listOpen = false }
             when (state.section) {
                 Section.Chat, Section.Tasks -> {
-                    Box(Modifier.width(listWidth).fillMaxHeight().background(MaterialTheme.colorScheme.surface)) {
-                        TaskList(state, model)
+                    if (!compact) {
+                        Box(Modifier.width(listWidth).fillMaxHeight().background(MaterialTheme.colorScheme.surface)) {
+                            TaskList(state, model)
+                        }
                     }
-                    Box(Modifier.weight(1f).fillMaxHeight()) {
-                        if (state.showDetail && state.selectedTaskId != null) {
-                            TaskDetailPanel(state, model, onBack = { model.closeDetail() })
+                    Column(Modifier.weight(1f).fillMaxHeight()) {
+                        if (compact) {
+                            AeonButton(if (listOpen) "대화로 돌아가기" else "대화 목록", { listOpen = !listOpen }, modifier = Modifier.padding(start = 12.dp, top = 8.dp), kind = ButtonKind.Secondary)
+                        }
+                        if (compact && listOpen) {
+                            TaskList(state, model, modifier = Modifier.weight(1f), onTaskSelected = { listOpen = false })
+                        } else if (state.showDetail && state.selectedTaskId != null) {
+                            TaskDetailPanel(state, model, onBack = { model.closeDetail() }, modifier = Modifier.weight(1f))
                         } else {
-                            ConversationScreen(state, model, wide = true)
+                            ConversationScreen(state, model, wide = true, modifier = Modifier.weight(1f))
                         }
                     }
                 }
@@ -178,7 +189,7 @@ fun WideLayout(state: UiState, model: AppModel) {
 }
 
 @Composable
-private fun Sidebar(state: UiState, model: AppModel, rail: Boolean) {
+private fun Sidebar(state: UiState, model: AppModel, rail: Boolean, onConversationStart: () -> Unit) {
     val s = LocalAeonStatus.current
     val width = if (rail) 88.dp else 220.dp
     Column(
@@ -189,15 +200,16 @@ private fun Sidebar(state: UiState, model: AppModel, rail: Boolean) {
         if (!rail) Text("Æ Aeon", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
         else Text("Æ", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.size(6.dp))
-        AeonButton(if (rail) "+" else "＋ 새 대화", { model.newConversation() }, kind = ButtonKind.Primary, wide = true, modifier = Modifier.fillMaxWidth())
-        NavItem(if (rail) "대화" else "대화", state.section == Section.Chat, rail) { model.go(Section.Chat); model.newConversation() }
-        NavItem("피드", state.section == Section.Feed, rail) { model.go(Section.Feed) }
-        NavItem("둘러보기", state.section == Section.Explore, rail) { model.go(Section.Explore) }
-        NavItem(if (rail) "승인" else if (state.pendingCount > 0) "승인 대기 ${state.pendingCount}" else "승인 대기", state.section == Section.Approvals, rail) { model.go(Section.Approvals) }
-        NavItem(if (rail) "에이전트" else "내 에이전트", state.section == Section.Agent, rail) { model.go(Section.Agent) }
-        NavItem(if (rail) "기기" else "기기", state.section == Section.Settings && state.settingsPage == SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Devices) }
-        NavItem(if (rail) "설정" else "설정", state.section == Section.Settings && state.settingsPage != SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Models) }
-        Spacer(Modifier.weight(1f))
+        AeonButton(if (rail) "+" else "＋ 새 대화", { onConversationStart(); model.newConversation() }, kind = ButtonKind.Primary, wide = true, modifier = Modifier.fillMaxWidth())
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            NavItem(if (rail) "대화" else "대화", state.section == Section.Chat, rail) { onConversationStart(); model.go(Section.Chat); model.newConversation() }
+            NavItem("피드", state.section == Section.Feed, rail) { model.go(Section.Feed) }
+            NavItem("둘러보기", state.section == Section.Explore, rail) { model.go(Section.Explore) }
+            NavItem(if (rail) "승인" else if (state.pendingCount > 0) "승인 대기 ${state.pendingCount}" else "승인 대기", state.section == Section.Approvals, rail) { model.go(Section.Approvals) }
+            NavItem(if (rail) "에이전트" else "내 에이전트", state.section == Section.Agent, rail) { model.go(Section.Agent) }
+            NavItem(if (rail) "기기" else "기기", state.section == Section.Settings && state.settingsPage == SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Devices) }
+            NavItem(if (rail) "설정" else "설정", state.section == Section.Settings && state.settingsPage != SettingsPage.Devices, rail) { model.openSettings(SettingsPage.Models) }
+        }
         if (!rail) {
             val (dot, text) = when (val c = state.connection) {
                 is Connection.Connected -> s.ok to "온라인 · ${c.serverName}"
