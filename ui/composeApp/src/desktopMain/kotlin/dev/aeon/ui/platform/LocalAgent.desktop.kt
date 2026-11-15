@@ -50,6 +50,7 @@ internal class DesktopLocalAgent(
     override val available: Boolean get() = files?.complete == true
     override val deviceNoun: String get() = "이 컴퓨터"
     override val isComputer: Boolean get() = true
+    override val workFolder: String get() = workspace.absolutePath
 
     override var onProgress: ((Int, String) -> Unit)? = null
     private fun say(stage: Int, line: String) { onProgress?.invoke(stage, line) }

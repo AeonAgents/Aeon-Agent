@@ -98,6 +98,7 @@ class DesktopLocalAgentTest {
         assertNotNull(code, "a pairing code came back")
         assertEquals(16, code.length)
         assertTrue(File(dir, "ws").isDirectory, "its work folder was made")
+        assertEquals(File(dir, "ws").absolutePath, host.workFolder, "the app can tell the person where it is")
         host.stop()
         // the port is closed once the process is gone
         repeat(50) { if (portOpen(port)) Thread.sleep(100) }

@@ -349,6 +349,9 @@ class AppModel(
     /** True when this build of the app contains the agent, so "이 기기에서 바로 쓰기" is possible. */
     val canRunOnDevice: Boolean get() = localAgent.available
 
+    /** Where the agent inside this app works, so the app can say it ("에이전트는 이 폴더 안의 파일만 볼 수 있어요"), or null. */
+    val workFolder: String? get() = if (localAgent.available) localAgent.workFolder else null
+
     /** True on a computer that has the agent inside: the setup then says "이 컴퓨터" and offers another computer as the other choice. */
     val runsOnComputer: Boolean get() = localAgent.available && localAgent.isComputer
 

@@ -12,6 +12,9 @@ interface LocalAgentHost {
     /** What the screens call the place the agent runs on: "이 기기" on a phone, "이 컴퓨터" on a computer. */
     val deviceNoun: String get() = "이 기기"
 
+    /** The folder the agent works in, when the app knows it and the person can open it ("Documents/Aeon" on a computer). */
+    val workFolder: String? get() = null
+
     /** True on a computer, where the other choice in the setup is another computer rather than "my computer". */
     val isComputer: Boolean get() = false
 

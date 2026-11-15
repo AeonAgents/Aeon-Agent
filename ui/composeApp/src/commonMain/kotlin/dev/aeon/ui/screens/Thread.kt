@@ -308,5 +308,7 @@ private fun WelcomeBlock(state: UiState, model: AppModel) {
                 }
             }
         }
+        // Where the work folder is, said once where a new person looks: the suggestions above say "작업 폴더", and nothing else tells where it is.
+        model.workFolder?.let { Text("에이전트는 이 폴더 안의 파일만 볼 수 있어요: $it", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
