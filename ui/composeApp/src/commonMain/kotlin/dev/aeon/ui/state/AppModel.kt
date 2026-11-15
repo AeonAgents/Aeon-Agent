@@ -119,6 +119,7 @@ data class RoutinesState(
     /** The computer's offset from UTC in minutes, so times can be said on its clock. */
     val utcOffsetMinutes: Int = 0,
     val loaded: Boolean = false,
+    val loading: Boolean = false,
     val draft: RoutineDraft? = null,
     val picked: dev.aeon.ui.api.RoutineItem? = null,
     val busy: Boolean = false,
@@ -1038,7 +1039,7 @@ class AppModel(
     fun confirm(id: String) = action("확인했어요") { client.confirm(id) }
 
     fun loadSettings() {
-        action(null) {
+        action(null, SETTINGS_LOAD_ERROR) {
             val cfg = client.config()
             val sec = client.secretNames()
             _state.update { it.copy(config = cfg, draft = it.draft ?: cfg, secretNames = sec.names, secretsBackend = sec.backend) }
@@ -1273,12 +1274,25 @@ class AppModel(
 
     private fun routines(change: (RoutinesState) -> RoutinesState) = _state.update { it.copy(routines = change(it.routines)) }
 
-    private fun showRoutines(r: dev.aeon.ui.api.RoutinesResponse) = routines { s ->
-        s.copy(items = r.routines, runsToday = r.runsToday, cap = r.cap, utcOffsetMinutes = r.utcOffsetMinutes, loaded = true, busy = false, error = null, picked = s.picked?.let { p -> r.routines.firstOrNull { it.id == p.id } })
+    private fun showRoutines(r: dev.aeon.ui.api.RoutinesResponse) {
+        routines { s ->
+            s.copy(items = r.routines, runsToday = r.runsToday, cap = r.cap, utcOffsetMinutes = r.utcOffsetMinutes, loaded = true, loading = false, busy = false, error = null, picked = s.picked?.let { p -> r.routines.firstOrNull { it.id == p.id } })
+        }
     }
 
     fun loadRoutines() {
-        scope.launch { runCatching { client.routines() }.onSuccess { showRoutines(it) } }
+        if (_state.value.routines.loading) return
+        routines { it.copy(loading = true, error = null) }
+        scope.launch {
+            try {
+                showRoutines(client.routines())
+                if (_state.value.message == SETTINGS_LOAD_ERROR) loadSettings()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                routines { it.copy(items = emptyList(), loaded = false, loading = false, picked = null, error = "반복 작업을 불러오지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.") }
+            }
+        }
     }
 
     fun openRoutineDraft() = routines { it.copy(draft = RoutineDraft(), picked = null, error = null) }
@@ -1703,7 +1717,7 @@ class AppModel(
         loadExplore()
     }
 
-    private fun action(success: String?, block: suspend () -> Unit) {
+    private fun action(success: String?, failure: String? = null, block: suspend () -> Unit) {
         scope.launch {
             _state.update { it.copy(busy = true) }
             try {
@@ -1711,7 +1725,7 @@ class AppModel(
                 _state.update { it.copy(message = success, busy = false) }
                 refresh()
             } catch (e: Exception) {
-                _state.update { it.copy(message = describe(e), busy = false) }
+                _state.update { it.copy(message = failure ?: describe(e), busy = false) }
             }
         }
     }
@@ -1733,6 +1747,7 @@ class AppModel(
     }
 
     private companion object {
+        const val SETTINGS_LOAD_ERROR = "설정을 불러오지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요."
         const val KEY_URL = "serverUrl"
         const val KEY_DEVICE = "deviceId"
         const val KEY_THEME = "themeMode"

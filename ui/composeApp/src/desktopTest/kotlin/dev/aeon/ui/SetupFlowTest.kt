@@ -56,6 +56,23 @@ class SetupFlowTest {
 
     private val AppModel.setup get() = state.value.setup
 
+    @Test
+    fun anUnavailableRoutinesListReportsAnError() {
+        val m = model(MapStore())
+        m.loadRoutines()
+        waitFor { m.state.value.routines.error != null }
+        assertEquals("반복 작업을 불러오지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.", m.state.value.routines.error)
+        assertFalse(m.state.value.routines.loaded)
+    }
+
+    @Test
+    fun unavailableSettingsGiveAReadableMessage() {
+        val m = model(MapStore())
+        m.loadSettings()
+        waitFor { m.state.value.message != null }
+        assertEquals("설정을 불러오지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.", m.state.value.message)
+    }
+
     /** A fake agent inside the app: it counts how often the app asks it to start. */
     private class CountingAgent(var startsAs: String? = null) : LocalAgentHost {
         @Volatile var starts = 0

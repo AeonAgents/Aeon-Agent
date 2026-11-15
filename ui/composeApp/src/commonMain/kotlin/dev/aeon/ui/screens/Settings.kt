@@ -91,7 +91,7 @@ fun SettingsScreen(state: UiState, model: AppModel, modifier: Modifier = Modifie
                 CircleButton(AeonIcons.Back, "뒤로", onBack)
                 Text(pageTitle(state.settingsPage), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                 // The page for what the agent remembers has its "add" button where the mockup puts it.
-                if (state.settingsPage == SettingsPage.Memory && state.isAdmin) CircleButton(AeonIcons.Plus, "기억 추가", model::openMemoryDraft) else if (state.settingsPage == SettingsPage.Routines && state.isAdmin) CircleButton(AeonIcons.Plus, "반복 작업 추가", model::openRoutineDraft) else Spacer(Modifier.width(48.dp))
+                if (state.settingsPage == SettingsPage.Memory && state.isAdmin) CircleButton(AeonIcons.Plus, "기억 추가", model::openMemoryDraft) else if (state.settingsPage == SettingsPage.Routines && state.isAdmin && state.routines.loaded) CircleButton(AeonIcons.Plus, "반복 작업 추가", model::openRoutineDraft) else Spacer(Modifier.width(48.dp))
             }
         }
         if (state.settingsPage == SettingsPage.Personal) {

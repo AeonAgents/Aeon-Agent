@@ -119,6 +119,8 @@ fun RoutinesPage(state: UiState, model: AppModel) {
     val now = nowMillis()
     LaunchedEffect(Unit) { model.loadRoutines() }
     r.error?.let { Banner(it, Tone.Warn, "⚠") }
+    if (!r.loaded && r.error != null && !r.loading) AeonButton("다시 시도", model::loadRoutines, kind = ButtonKind.Secondary)
+    if (!r.loaded && r.loading) FeedHint("반복 작업을 불러오고 있어요.")
     if (r.loaded && r.items.isEmpty()) {
         Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(64.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
@@ -148,7 +150,7 @@ fun RoutinesPage(state: UiState, model: AppModel) {
         if (r.runsToday > 0) FeedHint("오늘 반복 작업으로 ${r.runsToday}개를 시작했어요 (하루 ${r.cap}개까지).")
     }
     if (r.loaded) FeedHint("반복 작업은 에이전트가 켜져 있어야 실행돼요. 꺼져 있는 동안 놓친 일은 예정 시간에서 3시간 안에 다시 켜면 한 번 실행하고, 그 이후에는 건너뛰어요. 시간은 에이전트가 실행되는 기기의 시계 기준이에요.")
-    if (!state.isAdmin) FeedHint("이 기기는 반복 작업을 바꿀 수 없어요.")
+    if (r.loaded && !state.isAdmin) FeedHint("이 기기는 반복 작업을 바꿀 수 없어요.")
 
     r.draft?.let { RoutineDraftSheet(state, model) }
     r.picked?.let { RoutineSheet(it, state, model) }
