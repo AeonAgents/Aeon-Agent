@@ -144,9 +144,10 @@ fun RoutinesPage(state: UiState, model: AppModel) {
                 }
             }
         }
-        FeedHint("정한 시간이 되면 에이전트가 이 일을 시작해요. 승인이 필요한 일은 그때도 물어봐요. 시간은 컴퓨터 시계 기준이에요.")
+        FeedHint("정한 시간이 되면 에이전트가 이 일을 시작해요. 승인이 필요한 일은 그때도 물어봐요.")
         if (r.runsToday > 0) FeedHint("오늘 반복 작업으로 ${r.runsToday}개를 시작했어요 (하루 ${r.cap}개까지).")
     }
+    if (r.loaded) FeedHint("반복 작업은 에이전트가 켜져 있어야 실행돼요. 꺼져 있는 동안 놓친 일은 예정 시간에서 3시간 안에 다시 켜면 한 번 실행하고, 그 이후에는 건너뛰어요. 시간은 에이전트가 실행되는 기기의 시계 기준이에요.")
     if (!state.isAdmin) FeedHint("이 기기는 반복 작업을 바꿀 수 없어요.")
 
     r.draft?.let { RoutineDraftSheet(state, model) }
@@ -159,6 +160,7 @@ private fun RoutineDraftSheet(state: UiState, model: AppModel) {
     val d = r.draft ?: return
     SheetDialog(onDismiss = model::closeRoutineDraft) {
         Text("무엇을 반복할까요?", style = MaterialTheme.typography.titleLarge)
+        Text("정한 시간에 에이전트가 켜져 있어야 해요.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         AeonTextField(d.title, { t -> model.changeRoutineDraft { it.copy(title = t) } }, "할 일", Modifier.padding(top = 6.dp), singleLine = false, minHeight = 72.dp, error = r.error, placeholder = "예: 회의록을 읽고 요약 문서를 만들어 줘")
         Text("언제", style = MaterialTheme.typography.labelMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -166,8 +168,8 @@ private fun RoutineDraftSheet(state: UiState, model: AppModel) {
             PillChoice("평일", d.repeat == "weekdays") { model.changeRoutineDraft { it.copy(repeat = "weekdays") } }
             PillChoice("매주", d.repeat == "weekly") { model.changeRoutineDraft { it.copy(repeat = "weekly") } }
         }
-        if (d.repeat == "weekly") Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            DAY_NAMES.forEachIndexed { i, n -> PillChoice(n, d.day == i) { model.changeRoutineDraft { it.copy(day = i) } } }
+        if (d.repeat == "weekly") Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            DAY_NAMES.forEachIndexed { i, n -> PillChoice(n, d.day == i, Modifier.weight(1f), compact = true) { model.changeRoutineDraft { it.copy(day = i) } } }
         }
         Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("시간", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
