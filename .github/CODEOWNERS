@@ -1,6 +1,6 @@
 # Code owners are the people who must approve a change to the files named here (decision D34).
 # A change to any other file needs only the passing checks, so ordinary work is not held up waiting for a second person.
-# The branch rule asks, for the files below, for one approval from a maintainer who did not push last.
+# The branch rule asks, for the files below, for one approval from a maintainer (the author of a pull request cannot approve their own).
 # @AeonAgents/maintainers is the team of the maintainers (organisation settings, Teams); add or remove people there, not here.
 
 # What decides what the agent may do, and what it may reach.
