@@ -24,6 +24,7 @@ import kotlin.test.assertTrue
 class CopyTest {
     @Test
     fun aSnappedDesktopKeepsSpaceForTheConversation() {
+        assertEquals(0.dp, conversationListWidth(520.dp), "the list opens separately when a permanent column would squeeze the conversation")
         assertTrue(conversationListWidth(820.dp) <= 280.dp)
         assertEquals(380.dp, conversationListWidth(1180.dp))
     }
