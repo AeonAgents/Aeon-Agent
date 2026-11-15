@@ -126,14 +126,14 @@ internal fun RowDivider(inset: Dp = 72.dp) {
 }
 
 @Composable
-internal fun PillChoice(text: String, selected: Boolean, onClick: () -> Unit) {
+internal fun PillChoice(text: String, selected: Boolean, modifier: Modifier = Modifier, compact: Boolean = false, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(50)
     Box(
-        Modifier.defaultMinSize(minHeight = 36.dp).clip(shape)
+        modifier.defaultMinSize(minHeight = 36.dp).clip(shape)
             .background(if (selected) scheme.onSurface else scheme.surface)
             .then(if (selected) Modifier else Modifier.border(1.dp, scheme.outlineVariant, shape))
-            .clickable(onClick = onClick).padding(horizontal = 14.dp),
+            .clickable(onClick = onClick).padding(horizontal = if (compact) 4.dp else 14.dp),
         contentAlignment = Alignment.Center,
     ) { Text(text, color = if (selected) scheme.background else scheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge) }
 }
