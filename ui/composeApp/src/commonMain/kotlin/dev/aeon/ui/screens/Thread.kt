@@ -278,9 +278,11 @@ private fun ProgressCard(d: TaskDetail, waiting: Boolean) {
     }
 }
 
-private val SUGGESTIONS = listOf(
-    "다운로드 폴더에서 오래된 설치 파일을 찾아 목록으로 알려 줘",
-    "회의록 폴더의 파일을 읽고 요약 문서를 새로 만들어 줘",
+// The agent works only inside its work folder, so each of these must make sense there with nothing prepared: a first click on
+// "다운로드 폴더에서 …" ended in the agent asking where that folder is (found by running the desktop app for real, 2026-11-15).
+internal val SUGGESTIONS = listOf(
+    "작업 폴더에 어떤 파일이 있는지 목록으로 알려 줘",
+    "작업 폴더에 '오늘 할 일.txt' 파일을 만들고 할 일 세 가지를 적어 줘",
     "작업 폴더에서 내용이 같은 파일을 찾아 줘",
 )
 
@@ -306,5 +308,7 @@ private fun WelcomeBlock(state: UiState, model: AppModel) {
                 }
             }
         }
+        // Where the work folder is, said once where a new person looks: the suggestions above say "작업 폴더", and nothing else tells where it is.
+        model.workFolder?.let { Text("에이전트는 이 폴더 안의 파일만 볼 수 있어요: $it", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }

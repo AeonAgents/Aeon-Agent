@@ -161,11 +161,14 @@ jobs:
         include:
           - os: windows-latest
             tasks: ":composeApp:packageMsi :composeApp:packageExe"
+            # The Windows installers carry the agent and a Node.js runtime, so nobody has to install Node.js (decision D36).
+            extra: "-PbundleAgent"
             files: |
               ui/composeApp/build/compose/binaries/main/msi/*.msi
               ui/composeApp/build/compose/binaries/main/exe/*.exe
           - os: ubuntu-latest
             tasks: ":composeApp:packageDeb"
+            extra: ""
             files: "ui/composeApp/build/compose/binaries/main/deb/*.deb"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -174,10 +177,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: matrix.extra != ''
+        with:
+          node-version: 24
+      - name: Node packages (the compiler for the agent that goes into the installer)
+        if: matrix.extra != ''
+        run: npm ci
       - name: Installers
         working-directory: ui
         shell: bash
-        run: ./gradlew ${{ matrix.tasks }} -PappVersion=${{ needs.version.outputs.numeric }} --console=plain
+        run: ./gradlew ${{ matrix.tasks }} ${{ matrix.extra }} -PappVersion=${{ needs.version.outputs.numeric }} --console=plain
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: desktop-${{ matrix.os }}

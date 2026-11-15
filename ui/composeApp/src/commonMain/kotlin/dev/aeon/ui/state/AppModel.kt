@@ -318,6 +318,8 @@ class AppModel(
     private val pollMillis: Long = 2000,
     defaultServerUrl: String = "http://127.0.0.1:7421",
     private val localAgent: LocalAgentHost = localAgentHost(),
+    /** How soon the agent inside this app is started again after it was found gone (a second window closed it, or it crashed). */
+    private val localRestartMillis: Long = 8000,
 ) {
     private val _state = MutableStateFlow(UiState(serverUrl = defaultServerUrl))
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -349,6 +351,12 @@ class AppModel(
     /** True when this build of the app contains the agent, so "이 기기에서 바로 쓰기" is possible. */
     val canRunOnDevice: Boolean get() = localAgent.available
 
+    /** Where the agent inside this app works, so the app can say it ("에이전트는 이 폴더 안의 파일만 볼 수 있어요"), or null. */
+    val workFolder: String? get() = if (localAgent.available) localAgent.workFolder else null
+
+    /** True on a computer that has the agent inside: the setup then says "이 컴퓨터" and offers another computer as the other choice. */
+    val runsOnComputer: Boolean get() = localAgent.available && localAgent.isComputer
+
     /**
      * Starts the agent inside this app and pairs with it, with nothing typed: the app asks the agent for a one-time code
      * through a file only this app can read. Progress and the reason for a failure are in [SetupState.deviceStarting] and
@@ -374,7 +382,7 @@ class AppModel(
                     log(4, "코드를 받았어요. 이 기기와 연결해요")
                     pairNow(LOCAL_AGENT_URL, code)
                     if (_state.value.connection is Connection.Connected) null else _state.value.message ?: "이 기기의 에이전트와 연결하지 못했어요."
-                } ?: "이 기기의 에이전트에서 연결 코드를 받지 못했어요."
+                } ?: ("이 기기의 에이전트에서 연결 코드를 받지 못했어요." + if (localAgent.isComputer) " 이 컴퓨터에서 다른 Aeon이 이미 켜져 있다면 그것을 끄고 다시 시도해 주세요." else "")
             } catch (t: Throwable) {
                 _state.update { it.copy(busy = false, connection = if (it.connection is Connection.Connecting) Connection.Unpaired else it.connection) }
                 "연결하지 못했어요: ${t.message ?: t::class.simpleName}"
@@ -518,10 +526,38 @@ class AppModel(
                 _state.update { it.copy(connection = Connection.Unpaired, message = "This device is no longer authorised. Pair it again.") }
                 store.remove(KEY_DEVICE)
             } else {
-                _state.update { it.copy(connection = Connection.Offline(describe(e))) }
+                offline(e)
             }
         } catch (e: Exception) {
+            offline(e)
+        }
+    }
+
+    private var localRestartAt = 0L
+    private var localRestarting = false
+
+    /**
+     * The agent could not be reached. When it is the one inside this app, it is simply not running (the window that started it
+     * was closed, or it crashed), so say that and start it again, now and then, instead of telling the person to check the Wi-Fi.
+     */
+    private fun offline(e: Exception) {
+        val local = localAgent.available && dev.aeon.ui.api.PairLink.isThisDevice(client.baseUrl)
+        if (!local) {
             _state.update { it.copy(connection = Connection.Offline(describe(e))) }
+            return
+        }
+        _state.update { it.copy(connection = Connection.Offline("이 컴퓨터의 에이전트가 꺼져 있어요. 다시 켜고 있어요…")) }
+        val now = dev.aeon.ui.platform.nowMillis()
+        if (localRestarting || now - localRestartAt < localRestartMillis) return
+        localRestarting = true
+        localRestartAt = now
+        scope.launch {
+            val problem = try {
+                localAgent.start()
+            } finally {
+                localRestarting = false
+            }
+            if (problem != null) _state.update { if (it.connection is Connection.Offline) it.copy(connection = Connection.Offline(problem)) else it }
         }
     }
 

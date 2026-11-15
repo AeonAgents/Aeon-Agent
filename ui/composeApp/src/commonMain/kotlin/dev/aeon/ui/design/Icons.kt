@@ -40,6 +40,7 @@ object AeonIcons {
     val Terminal by lazy { stroke("terminal", "M4 5h16v14H4zM8 10l3 2.5L8 15M13 15h3") }
     val Key by lazy { stroke("key", "M7.5 15.5a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM11.5 11.5H21M17.5 11.5v3M21 11.5v2") }
     val Phone by lazy { stroke("phone", "M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2") }
+    val Monitor by lazy { stroke("monitor", "M4 5h16v11H4zM9 20h6M12 16v4") }
     val Cpu by lazy { stroke("cpu", "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4") }
     val Chart by lazy { stroke("chart", "M5 20V10M12 20V4M19 20v-7") }
     val Info by lazy { stroke("info", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5v.01") }

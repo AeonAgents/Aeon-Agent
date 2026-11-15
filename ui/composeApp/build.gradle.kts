@@ -89,10 +89,33 @@ compose.resources {
     packageOfResClass = "dev.aeon.ui.generated.resources"
 }
 
+// The agent that the desktop installer carries (decision D36): the compiled server and a Node.js runtime, so the desktop app starts
+// its own agent and nobody has to install Node.js or open a terminal. tools/package-agent.mjs makes the folder; Compose copies
+// it next to the app and the app finds it through compose.application.resources.dir. It is made only when asked for
+// (-PbundleAgent, as the release workflow does for Windows), so an ordinary build or test run needs no npm and no download.
+// -PagentNode=PATH uses a Node.js that is already on the machine instead of downloading the pinned one.
+val hostOsDir = System.getProperty("os.name").let { os -> if (os.startsWith("Windows")) "windows" else if (os.startsWith("Mac")) "macos" else "linux" }
+val hostArchDir = System.getProperty("os.arch").let { if (it == "aarch64" || it == "arm64") "arm64" else "x64" }
+val agentResources = layout.buildDirectory.dir("agent-resources")
+val prepareAgent = tasks.register<Exec>("prepareAgent") {
+    group = "aeon"
+    description = "Puts the agent and a Node.js runtime where the desktop installer picks them up."
+    workingDir = rootDir.parentFile
+    val out = agentResources.get().dir("$hostOsDir-$hostArchDir/agent").asFile
+    val node = findProperty("agentNode") as String?
+    commandLine(listOf("node", "tools/package-agent.mjs", "--out", out.absolutePath) + (if (node != null) listOf("--node", node) else emptyList()))
+    outputs.upToDateWhen { false }
+}
+if (findProperty("bundleAgent") != null) {
+    tasks.matching { it.name == "prepareAppResources" }.configureEach { dependsOn(prepareAgent) }
+}
+
 compose.desktop {
     application {
         mainClass = "dev.aeon.ui.MainKt"
         nativeDistributions {
+            // Only when the agent is asked for: a plain build must not pick up an old, left-over agent folder.
+            if (findProperty("bundleAgent") != null) appResourcesRootDir.set(agentResources)
             // jpackage builds only for the machine it runs on: Windows x64/ARM64 give msi/exe, Linux gives deb/rpm.
             targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
             packageName = "Aeon"
