@@ -349,6 +349,9 @@ class AppModel(
     /** True when this build of the app contains the agent, so "이 기기에서 바로 쓰기" is possible. */
     val canRunOnDevice: Boolean get() = localAgent.available
 
+    /** True on a computer that has the agent inside: the setup then says "이 컴퓨터" and offers another computer as the other choice. */
+    val runsOnComputer: Boolean get() = localAgent.available && localAgent.isComputer
+
     /**
      * Starts the agent inside this app and pairs with it, with nothing typed: the app asks the agent for a one-time code
      * through a file only this app can read. Progress and the reason for a failure are in [SetupState.deviceStarting] and

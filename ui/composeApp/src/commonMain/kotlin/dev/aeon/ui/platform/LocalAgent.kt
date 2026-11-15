@@ -2,11 +2,18 @@ package dev.aeon.ui.platform
 
 /**
  * The agent running inside this app, where that is possible: on Android, the compiled server on the Node.js for Mobile
- * runtime that ships in the app (decision D19). Elsewhere there is none, and the app connects to another device.
+ * runtime that ships in the app (decision D19); on Windows, the compiled server on a Node.js runtime that the installer
+ * carries (decision D36). Elsewhere there is none, and the app connects to another device.
  */
 interface LocalAgentHost {
     /** True when this build contains the runtime and the server. */
     val available: Boolean
+
+    /** What the screens call the place the agent runs on: "이 기기" on a phone, "이 컴퓨터" on a computer. */
+    val deviceNoun: String get() = "이 기기"
+
+    /** True on a computer, where the other choice in the setup is another computer rather than "my computer". */
+    val isComputer: Boolean get() = false
 
     /**
      * Set by the app to follow a start: the stage it is in (an index into [DEVICE_STAGES]) and one line for the log.

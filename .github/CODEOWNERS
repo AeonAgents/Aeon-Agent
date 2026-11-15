@@ -18,6 +18,8 @@
 /ui/*.gradle.kts          @AeonAgents/maintainers
 /ui/*/build.gradle.kts    @AeonAgents/maintainers
 /package.json             @AeonAgents/maintainers
+/tools/package-agent.mjs  @AeonAgents/maintainers
+/tools/agent-runtime.json @AeonAgents/maintainers
 /package-lock.json        @AeonAgents/maintainers
 
 # Decisions, threat model, licence.

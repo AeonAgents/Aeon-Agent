@@ -95,14 +95,18 @@ fun WhereScreen(state: UiState, model: AppModel) {
         StepHeading("어디서 실행할까요?", "나중에 설정에서 바꿀 수 있어요.")
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // On a computer that has the agent inside, "this device" is this computer and the other choice is another computer.
+            val pc = model.runsOnComputer
             WhereOption(
-                AeonIcons.Phone, "이 기기에서 바로 쓰기",
-                listOf("컴퓨터 없이 이 기기 하나로 설정해요", "AI 연결부터 프로필까지 이 앱 안에서 끝나요", "기록과 파일은 이 기기에만 있어요"),
+                if (pc) AeonIcons.Monitor else AeonIcons.Phone, if (pc) "이 컴퓨터에서 바로 쓰기" else "이 기기에서 바로 쓰기",
+                if (pc) listOf("따로 설치할 것이 없어요", "AI 연결부터 프로필까지 이 앱 안에서 끝나요", "기록과 파일은 이 컴퓨터에만 있어요")
+                else listOf("컴퓨터 없이 이 기기 하나로 설정해요", "AI 연결부터 프로필까지 이 앱 안에서 끝나요", "기록과 파일은 이 기기에만 있어요"),
                 choice == "device", chip = if (model.canRunOnDevice) null else "준비 중",
             ) { model.chooseWhere("device") }
             WhereOption(
-                AeonIcons.Terminal, "내 컴퓨터에 연결",
-                listOf("컴퓨터에서 Aeon을 켜 두고 이 기기로 시키고 승인해요", "다음 화면에서 설치부터 연결까지 안내해요", "여러 기기를 한 에이전트에 연결할 수 있어요"),
+                AeonIcons.Terminal, if (pc) "다른 컴퓨터에 연결" else "내 컴퓨터에 연결",
+                if (pc) listOf("다른 컴퓨터에서 켜 둔 Aeon에 연결해요", "다음 화면에서 설치부터 연결까지 안내해요", "여러 기기를 한 에이전트에 연결할 수 있어요")
+                else listOf("컴퓨터에서 Aeon을 켜 두고 이 기기로 시키고 승인해요", "다음 화면에서 설치부터 연결까지 안내해요", "여러 기기를 한 에이전트에 연결할 수 있어요"),
                 choice == "remote",
             ) { model.chooseWhere("remote") }
         }
@@ -191,22 +195,23 @@ private fun Help(q: String, a: String) {
 fun DeviceScreen(state: UiState, model: AppModel) {
     val s = state.setup
     val here = model.canRunOnDevice
+    val noun = if (model.runsOnComputer) "이 컴퓨터" else "이 기기"
     SetupFrame(
         null, null, onBack = { model.setupBack() }, onSkip = null,
         footer = {
             if (here && s.deviceError != null) AeonButton("다시 시도", { model.startOnDevice() }, Modifier.fillMaxWidth(), kind = ButtonKind.Primary)
-            AeonButton("컴퓨터에 연결하기", { model.chooseWhere("remote"); model.whereContinue() }, Modifier.fillMaxWidth(), kind = if (here && s.deviceError == null) ButtonKind.Ghost else ButtonKind.Primary)
+            AeonButton(if (model.runsOnComputer) "다른 컴퓨터에 연결하기" else "컴퓨터에 연결하기", { model.chooseWhere("remote"); model.whereContinue() }, Modifier.fillMaxWidth(), kind = if (here && s.deviceError == null) ButtonKind.Ghost else ButtonKind.Primary)
         },
     ) {
-        StepHeading("이 기기에서 실행", if (here) "에이전트를 이 기기에서 켜고 있어요." else "이 기기에서는 아직 쓸 수 없어요.")
+        StepHeading("${noun}에서 실행", if (here) "에이전트를 ${noun}에서 켜고 있어요." else "${noun}에서는 아직 쓸 수 없어요.")
         Column(Modifier.padding(top = 22.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surface, RoundedCornerShape(AeonShape.CARD.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             when {
                 !here -> {
                     Text("지금은 이렇게 쓸 수 있어요", style = MaterialTheme.typography.titleMedium)
                     Body("다른 컴퓨터에서 Aeon을 켜고 이 기기로 연결하면 이 기기에서 시키고 승인할 수 있어요.")
                 }
-                s.deviceError != null -> DeviceProgress(s, failed = true)
-                else -> DeviceProgress(s, failed = false)
+                s.deviceError != null -> DeviceProgress(s, failed = true, unpacks = !model.runsOnComputer)
+                else -> DeviceProgress(s, failed = false, unpacks = !model.runsOnComputer)
             }
         }
         if (here && s.deviceLog.isNotEmpty()) DeviceLog(s)
@@ -215,7 +220,7 @@ fun DeviceScreen(state: UiState, model: AppModel) {
 
 /** The steps of starting the agent on this device, each done, in progress, failed or waiting, with the reason when it failed. */
 @Composable
-private fun DeviceProgress(s: SetupState, failed: Boolean) {
+private fun DeviceProgress(s: SetupState, failed: Boolean, unpacks: Boolean) {
     val scheme = MaterialTheme.colorScheme
     val status = LocalAeonStatus.current
     Text(
@@ -223,7 +228,7 @@ private fun DeviceProgress(s: SetupState, failed: Boolean) {
         style = MaterialTheme.typography.titleMedium,
     )
     if (failed) Body(s.deviceError.orEmpty())
-    else Body("처음에는 파일을 풀어서 조금 걸려요. 연결 코드는 앱이 직접 받아서 입력할 필요가 없어요.")
+    else Body((if (unpacks) "처음에는 파일을 풀어서 조금 걸려요. " else "처음에는 조금 걸려요. ") + "연결 코드는 앱이 직접 받아서 입력할 필요가 없어요.")
     Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         DEVICE_STAGES.forEachIndexed { i, label ->
             val done = i < s.deviceStage || (!s.deviceStarting && !failed && i <= s.deviceStage)
