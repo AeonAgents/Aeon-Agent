@@ -8,7 +8,7 @@ A release is a **draft** GitHub release made from a tag. Nothing is published un
 |---|---|---|
 | `aeon-<version>-android.apk` | Linux runner | with the release key, **once the secrets below exist** |
 | `aeon-<version>-android-debug-key.apk` | Linux runner | with the debug key: installs for testing, cannot be updated by a later release-key build. Left out of the release when the signed one exists |
-| `Aeon-<1.2.3>.msi`, `Aeon-<1.2.3>.exe` (about 70 MB each) | Windows runner | not signed (Windows SmartScreen will warn) |
+| `Aeon-<1.2.3>.msi`, `Aeon-<1.2.3>.exe` (they carry the agent and a Node.js runtime, whose `node.exe` alone is 93 MB before compression, so nobody has to install Node.js; decision D36). In the dry run on GitHub's runners (2026-11-15) the Windows artifact holding the MSI and the EXE together was 211 MB, the `.deb` 65 MB (unchanged: it does not carry the agent); an MSI built on one computer was 107 MB; the EXE was not measured one by one | Windows runner | not signed (Windows SmartScreen will warn) |
 | `aeon_<1.2.3>_amd64.deb` (about 65 MB) | Linux runner | not signed |
 | `aeon-<version>-web.zip` | Linux runner | the web app; start the server with `--web <folder>` |
 | `SHA256SUMS.txt` | | checksums of all of the above |
@@ -28,6 +28,10 @@ Not built: macOS and iOS (out of scope), Windows ARM64 and rpm packages (a `jpac
 4. When everything is built, the draft release appears under *Releases* with generated notes. Read it, edit the notes, press *Publish*.
 
 The version comes from the tag: `1.2.3` becomes the Android `versionName`, `10203` its `versionCode` (major × 10000 + minor × 100 + patch, so it only grows), and the numeric part is the Windows and Linux package version.
+
+## The agent inside the Windows installer
+
+`-PbundleAgent` (the Windows entry of the desktop job passes it) makes Gradle run `tools/package-agent.mjs`, which compiles the agent and downloads the Node.js runtime pinned in `tools/agent-runtime.json`. The download is checked against the SHA-256 in that file and thrown away if it differs. To move to another Node.js version, change the version, the address and the hash together, taking the hash from `https://nodejs.org/dist/v<version>/SHASUMS256.txt`. A normal build or test run does not need npm or the download; to try the bundled app on a computer: `cd ui && ./gradlew :composeApp:createDistributable -PbundleAgent -PagentNode="C:/Program Files/nodejs/node.exe"` (`-PagentNode` uses a Node.js that is already installed instead of downloading) and start `composeApp/build/compose/binaries/main/app/Aeon/Aeon.exe`. (Gradle does not notice that the agent folder is new: if the app folder was built before without it, delete `ui/composeApp/build/compose/binaries` first. A build on a clean checkout, like the workflow's, has no such problem.)
 
 ## The signing key and the secrets
 

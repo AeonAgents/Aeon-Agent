@@ -184,7 +184,16 @@ private fun ProviderDetail(state: UiState, model: AppModel, p: ProviderRow) {
         }
     }
     if (!p.local && !p.consented) {
-        Row(Modifier.fillMaxWidth().clickable { consent = !consent }, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth().clickable {
+                consent = !consent
+                // For the AI that is already in use there is no model to tap afterwards, so ticking the box is the whole action:
+                // without this the tick was lost when the sheet closed and the next task asked for the permission again.
+                val now = m.current
+                if (consent && inUse && now != null) model.pickModel(p.id, now.model, now.reasoningEffort, true)
+            },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             CheckBox(consent, "내용 보내도 돼요")
             Text("${p.name}(${p.baseUrl.removePrefix("https://").substringBefore('/')})에 내 요청과 에이전트가 읽은 파일 내용을 보내도 좋아요.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
         }

@@ -56,6 +56,49 @@ class SetupFlowTest {
 
     private val AppModel.setup get() = state.value.setup
 
+    /** A fake agent inside the app: it counts how often the app asks it to start. */
+    private class CountingAgent(var startsAs: String? = null) : LocalAgentHost {
+        @Volatile var starts = 0
+        override val available = true
+        override suspend fun start(): String? { starts++; return startsAs }
+        override suspend fun pairingCode(): String? = null
+    }
+
+    @Test
+    fun anAgentFoundGoneIsStartedAgainNowAndThenAndNeverBlamesTheWifi() {
+        // paired to this computer, but nothing answers (the window that started the agent was closed)
+        val store = MapStore(mutableMapOf("serverUrl" to "http://127.0.0.1:9", "deviceId" to "dev-1", "serverKey" to ""))
+        val dir = Files.createTempDirectory("aeon-restart").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val http = HttpClient()
+        cleanup += { scope.cancel(); http.close(); dir.deleteRecursively() }
+        val crypto = DesktopDeviceCrypto(dir)
+        val agent = CountingAgent()
+        val m = AppModel(AeonClient("http://127.0.0.1:9", crypto, http), store, crypto, scope, pollMillis = 100, defaultServerUrl = "", localAgent = agent, localRestartMillis = 400)
+        m.start()
+        runBlocking { withTimeout(10_000) { while (agent.starts < 3) delay(50) } }
+        val connection = m.state.value.connection
+        assertTrue(connection is dev.aeon.ui.state.Connection.Offline, connection.toString())
+        assertFalse(connection.reason.contains("와이파이"), "an agent that is part of the app is not a Wi-Fi problem: ${connection.reason}")
+        // one start when the app opened, then a start only every 400 ms although it polls every 100 ms
+        assertTrue(agent.starts in 3..12, "starts: ${agent.starts}")
+    }
+
+    @Test
+    fun aRemoteAgentIsNeverStartedByTheApp() {
+        val store = MapStore(mutableMapOf("serverUrl" to "http://192.168.0.12:7421", "deviceId" to "dev-1", "serverKey" to ""))
+        val dir = Files.createTempDirectory("aeon-remote").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val http = HttpClient()
+        cleanup += { scope.cancel(); http.close(); dir.deleteRecursively() }
+        val crypto = DesktopDeviceCrypto(dir)
+        val agent = CountingAgent()
+        val m = AppModel(AeonClient("http://192.168.0.12:7421", crypto, http), store, crypto, scope, pollMillis = 100, defaultServerUrl = "", localAgent = agent, localRestartMillis = 100)
+        m.start()
+        runBlocking { delay(1500) }
+        assertEquals(0, agent.starts, "another computer's agent is not this app's to start")
+    }
+
     @Test
     fun aNewInstallWalksTheStepsInOrderAndCanGoBack() {
         val m = model(MapStore())

@@ -6,6 +6,7 @@ import dev.aeon.ui.design.taskRefused
 import dev.aeon.ui.design.thousands
 import dev.aeon.ui.screens.Fix
 import dev.aeon.ui.screens.GOAL_LIMIT
+import dev.aeon.ui.screens.SUGGESTIONS
 import dev.aeon.ui.screens.friendlyError
 import dev.aeon.ui.screens.goalTooLong
 import dev.aeon.ui.screens.friendlyProblem
@@ -108,5 +109,14 @@ class CopyTest {
         assertFalse(taskRefused("COMPLETED", "retry 1/3"), "another note does not make it refused")
         assertFalse(taskRefused("FAILED", "refused: the last action was not carried out"), "only a finished task is shown as not done")
         assertFalse(taskRefused("RUNNING", "refused: x"))
+    }
+
+    @Test
+    fun theSuggestedFirstTasksMakeSenseInTheWorkFolderWithNothingPrepared() {
+        // The agent works only inside its work folder. "다운로드 폴더에서 …" as the first suggestion ended, in a real run of the
+        // desktop app, in the agent asking where that folder is.
+        assertEquals(3, SUGGESTIONS.size)
+        assertTrue(SUGGESTIONS.all { it.contains("작업 폴더") }, SUGGESTIONS.toString())
+        assertFalse(SUGGESTIONS.any { it.contains("다운로드") || it.contains("회의록 폴더") }, "no folder the agent cannot see")
     }
 }
