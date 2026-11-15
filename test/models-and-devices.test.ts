@@ -352,6 +352,30 @@ async function boot(opts: { local?: boolean; maxUploadBytes?: number; feedFetch?
 }
 
 describe("Setting things up from any paired device", () => {
+  it("Fabric inventory is available only to an authenticated local device", async () => {
+    const local = await boot({ local: true });
+    try {
+      const unsigned = await fetch(`${local.base}/v1/fabric/local`);
+      assert.equal(unsigned.status, 401);
+      const reply = await local.owner.call(local.base, local.clock, "GET", "/v1/fabric/local");
+      assert.equal(reply.status, 200);
+      assert.equal(reply.body.kind, "local-inventory");
+      assert.equal(reply.body.platform, process.platform);
+      assert.deepEqual(reply.body.grants, []);
+      assert.equal(reply.body.remoteExecution, false);
+    } finally {
+      await local.close();
+    }
+
+    const remote = await boot();
+    try {
+      const reply = await remote.owner.call(remote.base, remote.clock, "GET", "/v1/fabric/local");
+      assert.equal(reply.status, 403, "even an admin cannot get this over a non-local connection");
+    } finally {
+      await remote.close();
+    }
+  });
+
   it("pairing hands the device the server's sealing key, proven with the pairing code", async () => {
     const t = await boot();
     assert.equal(t.owner.serverKey, t.identity.publicKey);

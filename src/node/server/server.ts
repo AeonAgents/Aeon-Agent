@@ -8,6 +8,7 @@ import { assertSecretName, type SecretStore } from "../../core/secrets.ts";
 import type { AuditEvent, Task } from "../../core/types.ts";
 import { parseCriterion } from "../../core/verify.ts";
 import { loadConfig, saveConfig } from "../config-file.ts";
+import { localFabricInventory } from "../fabric-inventory.ts";
 import type { ConnectionService } from "../connections.ts";
 import { SkillError } from "../skills.ts";
 import { FeedPipeline } from "../feed-pipeline.ts";
@@ -365,6 +366,12 @@ export class AeonServer {
     const { deviceId } = this.authenticate(req, raw);
     const rt = this.o.getRuntime();
     const { store, engine } = rt;
+
+    if (method === "GET" && path === "/v1/fabric/local") {
+      // Existing LAN traffic is plaintext; do not expose the inventory to remote UI clients.
+      if (!this.isLocal(req)) throw new HttpError(403, "local device only");
+      return this.json(res, 200, localFabricInventory());
+    }
 
     if (method === "GET" && path === "/v1/status") {
       const tasks = await store.listTasks();

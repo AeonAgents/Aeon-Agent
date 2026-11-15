@@ -11,6 +11,19 @@ val ApiJson = Json {
     encodeDefaults = true
 }
 
+/** Local observations only; they do not register a worker or authorize execution. */
+@Serializable
+data class LocalFabricInventory(
+    val schemaVersion: Int,
+    val kind: String,
+    val platform: String,
+    val architecture: String,
+    val logicalCpus: Int?,
+    val memoryBytes: Long?,
+    val grants: List<String>,
+    val remoteExecution: Boolean,
+)
+
 @Serializable
 data class VerificationBrief(val status: String, val checkedAt: Long)
 

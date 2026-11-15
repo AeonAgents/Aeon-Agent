@@ -36,4 +36,14 @@ Trust boundary: only the owner (CLI) is trusted. Models, files read, web pages, 
 
 | Article pictures of the feed fetch pages of arbitrary publishers (D23) | Only the server fetches them, through the SSRF-safe transport (public hosts only, DNS pinned at connect, size and time capped, redirects re-checked); the article address comes from Google's reply and must be https; the image must be JPEG, PNG or WebP by its first bytes, at most 600 KB; copies are named by a hash id and served only by that id; the phone never contacts a publisher | A publisher sees the server's address and can serve a misleading picture. Google can change or block the undocumented call. Each picture looked for costs about 1 MB of data (switch in 개인화) |
 
+## Aeon Fabric boundary
+
+The first Fabric inventory is local, read-only and invoked explicitly. It does
+not enroll peers, open a listener, authorize capabilities or execute remote
+work. The proposed distributed trust boundaries and failure modes are in the
+[Fabric architecture](superpowers/specs/2026-11-15-aeon-fabric-design.md);
+they are design requirements, not implemented mitigations. In particular, the
+existing paired-device admin flag and plaintext LAN API must not be treated as
+Fabric worker authorization or confidential transport.
+
 Out of scope until later phases: cloud runtimes, memory poisoning, deploy credentials.

@@ -98,9 +98,21 @@ Skills follow the Agent Skills specification. The agent makes them (you approve 
 
 `run`, `tick`, `list`, `show <id>`, `approvals`, `approve <id>`, `deny <id>`, `cancel <id>`, `verify <id>`, `confirm <id>`, `usage` – see `node src/node/cli.ts --help`. State lives in `<workspace>/.aeon/aeon.db`.
 
+## Aeon Fabric
+
+The first Fabric feature is a local, read-only resource inventory: open **기기
+→ 이 기기 자원 보기** in the app, or run `node src/node/cli.ts fabric
+inspect`. It reports no permissions and does not connect devices or run jobs on
+them. See the [architecture](docs/superpowers/specs/2026-11-15-aeon-fabric-design.md)
+for the proposed distributed stages and their limitations.
+
 ## Uninstall
 
-Delete the workspace's `.aeon/` folder and this repository folder. Phase 1 creates nothing outside them (no cloud resources, no system settings).
+Uninstall the app using your operating system. Settings, keys and records may
+remain in the user's Aeon configuration directory or system secret store; the
+workspace can contain files you asked Aeon to create. On Windows the default
+configuration is `%APPDATA%\Aeon` and the bundled agent's workspace is
+`Documents\Aeon`. Back up what you want to keep before removing data.
 
 ## Docs
 
