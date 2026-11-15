@@ -13,6 +13,8 @@ import dev.aeon.ui.screens.friendlyProblem
 import dev.aeon.ui.screens.findingWords
 import dev.aeon.ui.screens.recentLabel
 import dev.aeon.ui.screens.friendlySetupProblem
+import dev.aeon.ui.screens.conversationListWidth
+import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -20,6 +22,11 @@ import kotlin.test.assertTrue
 
 /** The words an ordinary user reads when something stops: Korean, plain, and no raw English from the engine. */
 class CopyTest {
+    @Test
+    fun aSnappedDesktopKeepsSpaceForTheConversation() {
+        assertTrue(conversationListWidth(820.dp) <= 280.dp)
+        assertEquals(380.dp, conversationListWidth(1180.dp))
+    }
     @Test
     fun taskErrorsAreShownInPlainKorean() {
         assertEquals("에이전트가 끝냈다고 했지만, 결과를 확인해 보니 맞지 않았어요.", friendlyError("The agent reported success but verification failed."))
