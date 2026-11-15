@@ -26,9 +26,11 @@ const run = (args: string[]): Promise<{ status: number | null; stderr: string }>
     child.on("close", (status) => resolve({ status, stderr }));
   });
 
+const agent = join(work, "agent-build");
 before(() => {
-  // one full build; the other runs reuse it
+  // One full run (it builds the agent into its own folder, as the installer build does); the other runs copy a build made once.
   execFileSync(process.execPath, [script, "--out", join(work, "full"), "--node", process.execPath], { cwd: root, stdio: "ignore" });
+  execFileSync(process.execPath, [join(root, "tools", "build-mobile.mjs"), agent], { cwd: root, stdio: "ignore" });
 });
 after(() => rmSync(work, { recursive: true, force: true }));
 
@@ -91,12 +93,12 @@ test("a downloaded runtime is kept only when its SHA-256 is the pinned one", asy
   const { url, server } = await serve(bytes);
   try {
     const good = join(work, "good");
-    const ok = await run(["--out", good, "--no-build", "--runtime-url", url, "--runtime-sha256", createHash("sha256").update(bytes).digest("hex")]);
+    const ok = await run(["--out", good, "--agent", agent, "--runtime-url", url, "--runtime-sha256", createHash("sha256").update(bytes).digest("hex")]);
     assert.equal(ok.status, 0, ok.stderr);
     assert.deepEqual(readFileSync(join(good, "runtime", runtimeName)), bytes);
 
     const bad = join(work, "bad");
-    const refused = await run(["--out", bad, "--no-build", "--runtime-url", url, "--runtime-sha256", "0".repeat(64)]);
+    const refused = await run(["--out", bad, "--agent", agent, "--runtime-url", url, "--runtime-sha256", "0".repeat(64)]);
     assert.notEqual(refused.status, 0);
     assert.match(refused.stderr, /not the pinned one/);
     assert.equal(existsSync(join(bad, "runtime", runtimeName)), false, "a runtime that failed the check is not left behind");
@@ -107,7 +109,7 @@ test("a downloaded runtime is kept only when its SHA-256 is the pinned one", asy
 });
 
 test("a runtime is not fetched over plain http, except from this computer itself", async () => {
-  const r = await run(["--out", join(work, "plain"), "--no-build", "--runtime-url", "http://example.com/node.exe", "--runtime-sha256", "0".repeat(64)]);
+  const r = await run(["--out", join(work, "plain"), "--agent", agent, "--runtime-url", "http://example.com/node.exe", "--runtime-sha256", "0".repeat(64)]);
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /must come over https/);
 });
@@ -115,7 +117,7 @@ test("a runtime is not fetched over plain http, except from this computer itself
 test("without --node and without a pinned runtime for the platform it says what to do", async () => {
   const pinned = JSON.parse(readFileSync(join(root, "tools", "agent-runtime.json"), "utf8")) as { platforms: Record<string, { url: string; sha256: string }> };
   if (pinned.platforms[`${process.platform}-${process.arch}`]) return; // this platform has one
-  const r = await run(["--out", join(work, "none"), "--no-build"]);
+  const r = await run(["--out", join(work, "none"), "--agent", agent]);
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /Pass --node PATH/);
 });

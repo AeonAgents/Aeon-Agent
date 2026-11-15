@@ -1,14 +1,14 @@
 // Puts the agent and a Node.js runtime into one folder, which the desktop installer carries (decision D36), so that
 // the desktop app can start its own agent and nobody has to install Node.js or use a terminal.
 //
-//   node tools/package-agent.mjs --out DIR [--node PATH] [--no-build]
+//   node tools/package-agent.mjs --out DIR [--node PATH] [--agent DIR]
 //
 // DIR gets:  project/   the compiled agent (the same build the Android app uses: dist-mobile, plain JavaScript)
 //            runtime/   node.exe (node on Linux and macOS)
 //
 // Without --node the runtime is downloaded from nodejs.org, from the address pinned in tools/agent-runtime.json, and it is
 // used only if its SHA-256 is the pinned one. --node PATH copies a runtime that is already on the machine instead (a
-// developer's own, or a test's). --no-build reuses the dist-mobile that was just built. --runtime-url / --runtime-sha256 replace the pinned address and hash (tests; plain http is
+// developer's own, or a test's). --agent DIR copies an agent that was built already (tools/build-mobile.mjs DIR) instead of building one. --runtime-url / --runtime-sha256 replace the pinned address and hash (tests; plain http is
 // accepted only for this computer's own address).
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -27,7 +27,7 @@ const { values } = parseArgs({
     node: { type: "string" },
     "runtime-url": { type: "string" },
     "runtime-sha256": { type: "string" },
-    "no-build": { type: "boolean" },
+    agent: { type: "string" },
   },
 });
 if (!values.out) {
@@ -62,8 +62,9 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(join(out, "runtime"), { recursive: true });
 
 // 1) the agent
-if (!values["no-build"]) execFileSync(process.execPath, [join(root, "tools", "build-mobile.mjs")], { cwd: root, stdio: "inherit" });
-cpSync(join(root, "dist-mobile"), join(out, "project"), { recursive: true });
+// Built into this folder, not into dist-mobile: that one is rebuilt (emptied first) by other runs, the tests among them.
+if (values.agent) cpSync(values.agent, join(out, "project"), { recursive: true });
+else execFileSync(process.execPath, [join(root, "tools", "build-mobile.mjs"), join(out, "project")], { cwd: root, stdio: "inherit" });
 if (!existsSync(join(out, "project", "node", "mobile-main.js"))) throw new Error("the agent build has no node/mobile-main.js");
 
 // 2) the runtime
