@@ -80,6 +80,12 @@ internal class DesktopLocalAgent(
             val f = files?.takeIf { it.complete } ?: return@withLock "이 앱에는 에이전트가 들어 있지 않아요. 설치 파일로 설치한 앱에서 쓸 수 있어요."
             try {
                 if (answers()) {
+                    // This app writes the pairing code into its own folder. An agent started some other way (a terminal, another
+                    // program) does not read it, so the app could not pair with it: say so instead of waiting for a code that never comes.
+                    if (process == null && !File(configDir, "server-key.json").exists()) {
+                        say(2, "다른 에이전트가 이미 켜져 있어요")
+                        return@withLock "이 컴퓨터에서 다른 Aeon 에이전트가 이미 켜져 있어요 (예: 터미널에서 직접 켠 것). 그것을 끄고 다시 시도하거나, 아래 '다른 컴퓨터에 연결하기'로 그 에이전트에 연결해 주세요."
+                    }
                     say(2, "에이전트가 이미 켜져 있어요")
                     return@withLock null
                 }
@@ -122,9 +128,10 @@ internal class DesktopLocalAgent(
     }
 
     override suspend fun pairingCode(): String? = withContext(Dispatchers.IO) {
+        configDir.mkdirs()
         val code = File(configDir, "pairing-code.txt")
         code.delete()
-        File(configDir, "pairing-code.txt.request").writeText("1")
+        runCatching { File(configDir, "pairing-code.txt.request").writeText("1") }.onFailure { return@withContext null }
         repeat(60) {
             delay(150)
             val text = runCatching { code.readText().trim() }.getOrDefault("")

@@ -377,7 +377,7 @@ class AppModel(
                     log(4, "코드를 받았어요. 이 기기와 연결해요")
                     pairNow(LOCAL_AGENT_URL, code)
                     if (_state.value.connection is Connection.Connected) null else _state.value.message ?: "이 기기의 에이전트와 연결하지 못했어요."
-                } ?: "이 기기의 에이전트에서 연결 코드를 받지 못했어요."
+                } ?: ("이 기기의 에이전트에서 연결 코드를 받지 못했어요." + if (localAgent.isComputer) " 이 컴퓨터에서 다른 Aeon이 이미 켜져 있다면 그것을 끄고 다시 시도해 주세요." else "")
             } catch (t: Throwable) {
                 _state.update { it.copy(busy = false, connection = if (it.connection is Connection.Connecting) Connection.Unpaired else it.connection) }
                 "연결하지 못했어요: ${t.message ?: t::class.simpleName}"

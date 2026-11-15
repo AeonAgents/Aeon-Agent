@@ -121,6 +121,26 @@ class DesktopLocalAgentTest {
     }
 
     @Test
+    fun anAgentStartedSomeOtherWayIsNamedInsteadOfAFileErrorOnTheScreen() = runBlocking {
+        // e.g. a developer's `aeon serve` in a terminal: it answers, but it never reads this app's pairing file
+        val foreign = com.sun.net.httpserver.HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        foreign.createContext("/v1/hello") { ex ->
+            val body = """{"name":"Aeon","api":1,"pairingRequired":true}""".toByteArray()
+            ex.sendResponseHeaders(200, body.size.toLong()); ex.responseBody.use { it.write(body) }
+        }
+        foreign.start()
+        cleanup += { foreign.stop(0) }
+        val dir = tmp()
+        val host = DesktopLocalAgent(AgentFiles(node(), compiledEntry()), File(dir, "cfg-that-does-not-exist-yet"), File(dir, "ws"), foreign.address.port)
+        val message = host.start()
+        assertNotNull(message, "it does not pretend to have started its own agent")
+        assertTrue(message.contains("이미 켜져 있어요"), message)
+        assertFalse(message.contains("pairing-code"), "no file path on the screen")
+        // and asking for a code when the folder is missing gives no code and no exception
+        assertNull(host.pairingCode())
+    }
+
+    @Test
     fun anotherProgramOnThePortIsNamedAsTheReason() = runBlocking {
         val dir = tmp()
         val busy = ServerSocket(0, 0, java.net.InetAddress.getLoopbackAddress())
