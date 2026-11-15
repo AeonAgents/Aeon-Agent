@@ -66,7 +66,7 @@
 ## 4. 개발 환경 (Windows 11, 소유자 PC)
 
 - 셸: Git Bash(주) + PowerShell. Node **24.19.0**(`C:\Program Files\nodejs`), JDK 21, Gradle은 `ui/`의 래퍼.
-- 코어: `npm ci`, `npm test`(**424개 중 422 통과·2 건너뜀**), `npx tsc --noEmit`, `npm run build:mobile`(→ `dist-mobile/`, 안드로이드·데스크톱 에이전트가 쓰는 빌드).
+- 코어: `npm ci`, `npm test`(`main`은 **419개 중 417 통과·2 건너뜀**, PR #49 브랜치는 새 테스트 5개가 더해져 **424개 중 422 통과·2 건너뜀**), `npx tsc --noEmit`, `npm run build:mobile`(→ `dist-mobile/`, 안드로이드·데스크톱 에이전트가 쓰는 빌드).
 - 앱: `cd ui && ./gradlew :composeApp:desktopTest :composeApp:compileKotlinWasmJs --console=plain`(CI "Apps (Kotlin)"과 같음). 안드로이드: `./gradlew :androidApp:assembleDebug`(NDK 29.0.14206865, `node tools/fetch-nodejs-mobile.mjs` 필요). 웹: `:composeApp:wasmJsBrowserDistribution`.
 - 에이전트 포함 데스크톱 앱 폴더: `./gradlew :composeApp:createDistributable -PbundleAgent "-PagentNode=C:/Program Files/nodejs/node.exe"` → `ui/composeApp/build/compose/binaries/main/app/Aeon/Aeon.exe`. MSI: `:composeApp:packageMsi` 같은 옵션.
 - **안드로이드 에뮬레이터**: `C:\Android\emulator\emulator.exe -avd aeon-test -no-snapshot -no-audio -no-metrics -crash-report-mode never`, adb `C:\Android\platform-tools\adb.exe`, 에뮬레이터 → PC 서버는 `http://10.0.2.2:7421`. 설치는 `C:/Users/…` 형식 경로로.
