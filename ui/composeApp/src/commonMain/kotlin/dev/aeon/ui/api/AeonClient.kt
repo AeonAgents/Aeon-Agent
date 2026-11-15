@@ -71,6 +71,16 @@ class AeonClient(
 
     suspend fun status(): ServerStatus = ApiJson.decodeFromString(signed(HttpMethod.Get, "/v1/status"))
 
+    suspend fun localFabricInventory(): LocalFabricInventory {
+        val body = kotlinx.coroutines.withTimeoutOrNull(5_000) { signed(HttpMethod.Get, "/v1/fabric/local") }
+            ?: throw AeonException(0, "Local inventory timed out")
+        val inventory = ApiJson.decodeFromString<LocalFabricInventory>(body)
+        if (inventory.schemaVersion != 1 || inventory.kind != "local-inventory" || inventory.remoteExecution || inventory.grants.isNotEmpty()) {
+            throw AeonException(0, "Unsupported local inventory")
+        }
+        return inventory
+    }
+
     suspend fun tasks(): List<TaskSummary> = ApiJson.decodeFromString<TasksResponse>(signed(HttpMethod.Get, "/v1/tasks")).tasks
 
     suspend fun task(id: String): TaskDetail = ApiJson.decodeFromString<TaskDetailResponse>(signed(HttpMethod.Get, "/v1/tasks/$id")).task

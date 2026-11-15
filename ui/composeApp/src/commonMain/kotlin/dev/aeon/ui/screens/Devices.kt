@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.aeon.ui.api.DeviceInfo
+import dev.aeon.ui.api.LocalFabricInventory
 import dev.aeon.ui.api.PairLink
 import dev.aeon.ui.design.AeonButton
 import dev.aeon.ui.design.AeonIcons
@@ -51,11 +53,13 @@ import dev.aeon.ui.state.NewDevice
 import dev.aeon.ui.state.UiState
 import dev.aeon.ui.state.thisDevice
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 
 private fun platformName(p: String?): String = when (p) {
     "win32" -> "Windows"
     "linux" -> "Linux"
     "darwin" -> "macOS"
+    "android" -> "Android"
     else -> p ?: ""
 }
 
@@ -83,6 +87,7 @@ fun DevicesPage(state: UiState, model: AppModel) {
     LaunchedEffect(Unit) { model.loadDevices() }
     val now = nowMillis()
     var picked by remember { mutableStateOf<DeviceInfo?>(null) }
+    var inspectLocal by remember { mutableStateOf(false) }
     val active = state.devices.filter { !it.revoked }
     val host = state.status?.host
 
@@ -110,9 +115,54 @@ fun DevicesPage(state: UiState, model: AppModel) {
     if (state.isAdmin) {
         AeonButton("새 기기 연결", { model.newPairingCode(true) }, Modifier.fillMaxWidth(), kind = ButtonKind.Primary, enabled = !state.busy)
     }
+    if (state.thisDevice) {
+        AeonButton("이 기기 자원 보기", { inspectLocal = true }, Modifier.fillMaxWidth(), kind = ButtonKind.Secondary)
+        if (inspectLocal) LocalInventoryDialog(model) { inspectLocal = false }
+    }
 
     state.newDevice?.let { n -> NewDeviceDialog(n, state, model) }
     picked?.let { d -> DeviceDialog(d, state, model) { picked = null } }
+}
+
+@Composable
+private fun LocalInventoryDialog(model: AppModel, onClose: () -> Unit) {
+    var inventory by remember { mutableStateOf<LocalFabricInventory?>(null) }
+    var error by remember { mutableStateOf(false) }
+    var attempt by remember { mutableIntStateOf(0) }
+    LaunchedEffect(attempt) {
+        inventory = null
+        error = false
+        try {
+            inventory = model.localFabricInventory()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            error = true
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text("이 기기 자원") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val data = inventory
+                when {
+                    error -> Text("자원 정보를 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.")
+                    data == null -> Text("정보를 확인하고 있어요.")
+                    else -> {
+                        Text("${platformName(data.platform)} · ${data.architecture}")
+                        Text(data.logicalCpus?.takeIf { it > 0 }?.let { "사용 가능한 논리 프로세서 약 ${it}개" } ?: "논리 프로세서 확인 안 됨")
+                        val bytes = data.memoryBytes?.takeIf { it > 0 }
+                        val gib = 1_073_741_824L
+                        Text(if (bytes == null) "전체 메모리 확인 안 됨" else "전체 메모리 ${bytes / gib}.${(bytes % gib) * 10 / gib} GiB")
+                        Text("다른 기기의 자원을 이용해 작업하는 기능은 아직 준비 중이에요.", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onClose) { Text("닫기") } },
+        dismissButton = { if (error) TextButton(onClick = { attempt++ }) { Text("다시 시도") } },
+    )
 }
 
 @Composable

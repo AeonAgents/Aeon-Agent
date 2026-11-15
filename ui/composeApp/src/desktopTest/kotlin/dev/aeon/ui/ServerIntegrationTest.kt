@@ -10,10 +10,12 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -107,6 +109,39 @@ class ServerIntegrationTest {
             delay(150)
         }
         error("task $id never reached ${statuses.toList()}; last=${last?.status} ${last?.error}")
+    }
+
+    @Test
+    fun localFabricInventoryTimesOutIfTheServerStopsResponding() = runBlocking {
+        val release = CountDownLatch(1)
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/v1/fabric/local") { exchange ->
+            release.await(12, TimeUnit.SECONDS)
+            exchange.close()
+        }
+        server.start()
+        cleanup += { release.countDown(); server.stop(0) }
+        val (client, _) = newClient("http://127.0.0.1:${server.address.port}")
+        client.deviceId = "dev_test"
+
+        val error = assertFailsWith<AeonException> {
+            withTimeout(8_000) { client.localFabricInventory() }
+        }
+        assertEquals(0, error.status)
+    }
+
+    @Test
+    fun localFabricInventoryIsReadThroughTheRealPairedClient() = runBlocking {
+        val fx = startAeon(startFakeModel(emptyList()))
+        val (client, _) = newClient(fx.base)
+        client.pair(fx.code, "kotlin inventory client")
+
+        val inventory = client.localFabricInventory()
+        assertEquals(1, inventory.schemaVersion)
+        assertEquals("local-inventory", inventory.kind)
+        assertTrue(inventory.logicalCpus?.let { it > 0 } ?: true)
+        assertTrue(inventory.memoryBytes?.let { it > 0 } ?: true)
+        assertFalse(inventory.remoteExecution)
     }
 
     @Test

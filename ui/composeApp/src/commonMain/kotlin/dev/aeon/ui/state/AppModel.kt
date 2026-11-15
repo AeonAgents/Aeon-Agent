@@ -958,6 +958,9 @@ class AppModel(
 
     // ---------------------------------------------------------------- 기기
 
+    /** Called only when the device page explicitly asks for this machine's local inventory. */
+    suspend fun localFabricInventory() = client.localFabricInventory()
+
     fun loadDevices() {
         scope.launch { runCatching { client.devices() }.onSuccess { d -> _state.update { it.copy(devices = d) } } }
     }

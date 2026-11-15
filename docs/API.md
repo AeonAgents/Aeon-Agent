@@ -30,6 +30,7 @@ Any failure returns `401 {"error":"unauthorized"}` with no hint which check fail
 | `GET /v1/hello` (no auth) | name, api version |
 | `POST /v1/pair` (no auth) | pairing, above |
 | `GET /v1/status` | task counts, secret backend name, provider health, `setupProblem` (e.g. missing key) |
+| `GET /v1/fabric/local` | authenticated loopback request only: local platform, architecture, available logical processors and total memory; unknown numbers are null. Returns `schemaVersion: 1`, `kind: "local-inventory"`, an empty `grants` list and `remoteExecution: false`. Non-local requests are 403 even for a paired admin; this is not Fabric enrollment or a worker transport. A proxy that forwards remote requests from loopback would defeat the source-address restriction and must not expose this route. |
 | `GET /v1/tasks` · `POST /v1/tasks` | list (summaries) · create `{ goal, criteria?[], runAfter? }` |
 | `GET /v1/tasks/{id}` | detail incl. plan, steps, verification evidence |
 | `POST /v1/tasks/{id}/cancel` · `/verify` · `/confirm` | cancel · re-verify against reality · owner confirmation |

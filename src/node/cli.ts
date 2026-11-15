@@ -10,6 +10,7 @@ import { bootRuntime } from "./bootstrap.ts";
 import type { createRuntime } from "./runtime.ts";
 import { defaultSecretStore } from "./secret-backends.ts";
 import { serveCommand } from "./serve.ts";
+import { localFabricInventory } from "./fabric-inventory.ts";
 
 const HELP = `aeon - continuity-first personal agent (Phase 1, local runtime)
 
@@ -24,6 +25,7 @@ Commands:
   approve <approvalId> | deny <approvalId>
   cancel <taskId> | verify <taskId> | confirm <taskId>
   usage                      model calls recorded so far
+  fabric inspect             inspect local resources (no remote access or grants)
   serve [--host H] [--port N] [--web DIR]   start the local API server for the web/Windows/Android UIs
   secrets set NAME           store a secret (value read from a hidden prompt or stdin, never from argv)
   secrets list | delete NAME names only; values are never printed
@@ -70,6 +72,11 @@ async function main(): Promise<number> {
   if (values.help || !cmd) {
     console.log(HELP);
     return cmd ? 0 : 1;
+  }
+  if (cmd === "fabric") {
+    if (arg !== "inspect" || positionals.length !== 2) throw new Error("usage: fabric inspect");
+    console.log(JSON.stringify(localFabricInventory(), null, 2));
+    return 0;
   }
   const cfgDir = configDir();
   if (cmd === "secrets") return secretsCommand(arg, positionals[2], cfgDir);
