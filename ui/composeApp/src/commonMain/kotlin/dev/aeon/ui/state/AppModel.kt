@@ -318,6 +318,8 @@ class AppModel(
     private val pollMillis: Long = 2000,
     defaultServerUrl: String = "http://127.0.0.1:7421",
     private val localAgent: LocalAgentHost = localAgentHost(),
+    /** How soon the agent inside this app is started again after it was found gone (a second window closed it, or it crashed). */
+    private val localRestartMillis: Long = 8000,
 ) {
     private val _state = MutableStateFlow(UiState(serverUrl = defaultServerUrl))
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -524,10 +526,38 @@ class AppModel(
                 _state.update { it.copy(connection = Connection.Unpaired, message = "This device is no longer authorised. Pair it again.") }
                 store.remove(KEY_DEVICE)
             } else {
-                _state.update { it.copy(connection = Connection.Offline(describe(e))) }
+                offline(e)
             }
         } catch (e: Exception) {
+            offline(e)
+        }
+    }
+
+    private var localRestartAt = 0L
+    private var localRestarting = false
+
+    /**
+     * The agent could not be reached. When it is the one inside this app, it is simply not running (the window that started it
+     * was closed, or it crashed), so say that and start it again, now and then, instead of telling the person to check the Wi-Fi.
+     */
+    private fun offline(e: Exception) {
+        val local = localAgent.available && dev.aeon.ui.api.PairLink.isThisDevice(client.baseUrl)
+        if (!local) {
             _state.update { it.copy(connection = Connection.Offline(describe(e))) }
+            return
+        }
+        _state.update { it.copy(connection = Connection.Offline("이 컴퓨터의 에이전트가 꺼져 있어요. 다시 켜고 있어요…")) }
+        val now = dev.aeon.ui.platform.nowMillis()
+        if (localRestarting || now - localRestartAt < localRestartMillis) return
+        localRestarting = true
+        localRestartAt = now
+        scope.launch {
+            val problem = try {
+                localAgent.start()
+            } finally {
+                localRestarting = false
+            }
+            if (problem != null) _state.update { if (it.connection is Connection.Offline) it.copy(connection = Connection.Offline(problem)) else it }
         }
     }
 
