@@ -8,7 +8,7 @@ A release is a **draft** GitHub release made from a tag. Nothing is published un
 |---|---|---|
 | `aeon-<version>-android.apk` | Linux runner | with the release key, **once the secrets below exist** |
 | `aeon-<version>-android-debug-key.apk` | Linux runner | with the debug key: installs for testing, cannot be updated by a later release-key build. Left out of the release when the signed one exists |
-| `Aeon-<1.2.3>.msi`, `Aeon-<1.2.3>.exe` (they carry the agent and a Node.js runtime, whose `node.exe` alone is 93 MB before compression, so nobody has to install Node.js; decision D36). In the dry run on GitHub's runners (2026-11-15) the Windows artifact holding the MSI and the EXE together was 211 MB, the `.deb` 65 MB (unchanged: it does not carry the agent); the two installers were not measured one by one | Windows runner | not signed (Windows SmartScreen will warn) |
+| `Aeon-<1.2.3>.msi`, `Aeon-<1.2.3>.exe` (they carry the agent and a Node.js runtime, whose `node.exe` alone is 93 MB before compression, so nobody has to install Node.js; decision D36). In the dry run on GitHub's runners (2026-11-15) the Windows artifact holding the MSI and the EXE together was 211 MB, the `.deb` 65 MB (unchanged: it does not carry the agent); an MSI built on one computer was 107 MB; the EXE was not measured one by one | Windows runner | not signed (Windows SmartScreen will warn) |
 | `aeon_<1.2.3>_amd64.deb` (about 65 MB) | Linux runner | not signed |
 | `aeon-<version>-web.zip` | Linux runner | the web app; start the server with `--web <folder>` |
 | `SHA256SUMS.txt` | | checksums of all of the above |
